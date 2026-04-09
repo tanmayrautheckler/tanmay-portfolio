@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { SectionReveal, StaggerContainer, StaggerItem } from "@/components/section-reveal";
+import { SplitIdentity } from "@/components/split-identity";
 import { ArrowRight } from "lucide-react";
 import { LinkedinIcon, GithubIcon, InstagramIcon } from "@/components/social-icons";
 
@@ -155,71 +156,11 @@ export default function About() {
         </StaggerContainer>
       </section>
 
-      {/* ═══ SPLIT IDENTITY ═══ */}
+      {/* ═══ SPLIT IDENTITY — Draggable slider ═══ */}
       <section className="py-16 md:py-24">
-        <div className="grid md:grid-cols-3 gap-16 items-start">
-          {/* Left — Systems side */}
-          <SectionReveal>
-            <h2 className="text-3xl font-bold mb-6">Part systems architect</h2>
-            <ul className="space-y-2 text-text-secondary">
-              <li>ERP architecture</li>
-              <li>Business process design</li>
-              <li>Manufacturing operations</li>
-              <li>Cost accounting</li>
-              <li>&ldquo;Making the data make sense&rdquo;</li>
-            </ul>
-          </SectionReveal>
-
-          {/* Center — visual */}
-          <SectionReveal delay={0.1}>
-            <div className="flex justify-center">
-              <div className="relative w-48 h-48">
-                {/* Pie chart SVG */}
-                <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
-                  <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" strokeWidth="10" className="text-border" />
-                  <motion.circle
-                    cx="50" cy="50" r="45" fill="none" strokeWidth="10"
-                    className="text-accent"
-                    strokeDasharray={`${0.6 * 283} ${0.4 * 283}`}
-                    initial={{ strokeDashoffset: 283 }}
-                    whileInView={{ strokeDashoffset: 0 }}
-                    viewport={{ once: false, margin: "-80px" }}
-                    transition={{ duration: 1.5, ease: "easeOut" }}
-                    strokeLinecap="round"
-                  />
-                  <motion.circle
-                    cx="50" cy="50" r="45" fill="none" strokeWidth="10"
-                    className="text-orange-400"
-                    strokeDasharray={`${0.4 * 283} ${0.6 * 283}`}
-                    strokeDashoffset={`${-0.6 * 283}`}
-                    initial={{ opacity: 0 }}
-                    whileInView={{ opacity: 1 }}
-                    viewport={{ once: false, margin: "-80px" }}
-                    transition={{ duration: 1, delay: 0.5 }}
-                    strokeLinecap="round"
-                  />
-                </svg>
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                  <span className="text-xs font-medium text-accent">Systems</span>
-                  <span className="text-[10px] text-text-secondary">&</span>
-                  <span className="text-xs font-medium text-orange-400">Manufacturing</span>
-                </div>
-              </div>
-            </div>
-          </SectionReveal>
-
-          {/* Right — Manufacturing side */}
-          <SectionReveal delay={0.2}>
-            <h2 className="text-3xl font-bold mb-6">Part manufacturing engineer</h2>
-            <ul className="space-y-2 text-text-secondary">
-              <li>AI-augmented automation</li>
-              <li>BOM & routing design</li>
-              <li>Quality control</li>
-              <li>Lean manufacturing</li>
-              <li>&ldquo;Going to the shell to get it&rdquo;</li>
-            </ul>
-          </SectionReveal>
-        </div>
+        <SectionReveal>
+          <SplitIdentity />
+        </SectionReveal>
       </section>
 
       {/* ═══ THINGS ABOUT ME — Interactive story cards ═══ */}
