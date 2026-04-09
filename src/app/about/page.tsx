@@ -31,16 +31,7 @@ const photoStrip = [
   { src: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&q=80", alt: "Mountains" },
 ];
 
-const randomFacts = [
-  "I run the entire ERP at a manufacturing company — alone",
-  "Our accountants escalate to me, not the other way around",
-  "I managed 30+ welders before I ever touched an ERP",
-  "I built an AI that queries live manufacturing data in English",
-  "I've been to Monument Valley, Hawaii, and seen the Northern Lights",
-  "I think in systems — everything is a workflow",
-  "I use AI as my development team — I bring the domain judgment.",
-  "I want to build systems so good that businesses run themselves",
-];
+// Random facts removed — replaced by interactive story cards
 
 const certifications = [
   "Lean Six Sigma Green Belt",
@@ -231,29 +222,37 @@ export default function About() {
         </div>
       </section>
 
-      {/* ═══ RANDOM FACTS + IMAGE ═══ */}
-      <section className="py-16 md:py-24 bg-surface rounded-3xl px-8 md:px-16">
-        <div className="grid md:grid-cols-2 gap-12 items-center">
-          <SectionReveal>
-            <div className="relative aspect-square rounded-2xl overflow-hidden">
-              <Image
-                src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=600&q=80"
-                alt="Technology"
-                fill
-                className="object-cover"
-                sizes="50vw"
-                unoptimized
-              />
-            </div>
-          </SectionReveal>
-          <SectionReveal delay={0.1}>
-            <h2 className="text-3xl font-bold mb-8">Random facts</h2>
-            <ul className="space-y-3">
-              {randomFacts.map((fact, i) => (
-                <li key={i} className="text-text-secondary leading-relaxed">{fact}</li>
-              ))}
-            </ul>
-          </SectionReveal>
+      {/* ═══ THINGS ABOUT ME — Interactive story cards ═══ */}
+      <section className="py-16 md:py-24">
+        <SectionReveal>
+          <h2 className="text-3xl md:text-4xl font-bold mb-12">Things about me</h2>
+        </SectionReveal>
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {[
+            { emoji: "🏭", title: "Factory Floor Origins", text: "Managed 30+ welders & machinists before I ever touched an ERP", color: "from-orange-500/20 via-orange-600/5 to-transparent", span: "col-span-2" },
+            { emoji: "🧠", title: "Systems Thinker", text: "Everything is a workflow. I think in processes, not tasks.", color: "from-cyan-500/20 via-cyan-600/5 to-transparent", span: "col-span-1" },
+            { emoji: "⚽", title: "Soccer", text: "Weekend warrior on the pitch", color: "from-green-500/20 via-green-600/5 to-transparent", span: "col-span-1" },
+            { emoji: "🤖", title: "AI × Domain Knowledge", text: "AI is my dev team — I bring the manufacturing judgment no model has", color: "from-violet-500/20 via-violet-600/5 to-transparent", span: "col-span-1" },
+            { emoji: "📊", title: "The Books Stop Here", text: "Our accountants escalate to me when things don't balance", color: "from-emerald-500/20 via-emerald-600/5 to-transparent", span: "col-span-1" },
+            { emoji: "🌍", title: "29 Places & Counting", text: "Monument Valley, Hawaii, Northern Lights, France, Singapore, Turkey...", color: "from-blue-500/20 via-blue-600/5 to-transparent", span: "col-span-2" },
+            { emoji: "📈", title: "Market Watcher", text: "Following patterns, building financial literacy, studying the game", color: "from-amber-500/20 via-amber-600/5 to-transparent", span: "col-span-1" },
+            { emoji: "📖", title: "Philosophy & Mental Models", text: "How to think about thinking — systems within systems", color: "from-rose-500/20 via-rose-600/5 to-transparent", span: "col-span-1" },
+            { emoji: "🎯", title: "The Vision", text: "Build systems so good that businesses run themselves", color: "from-cyan-500/20 via-purple-600/5 to-transparent", span: "col-span-2" },
+            { emoji: "🇮🇳", title: "Mumbai → Phoenix", text: "Crossed continents for a Master's. Stayed for the opportunity.", color: "from-orange-500/10 via-white/0 to-green-500/10", span: "col-span-2" },
+          ].map((card, i) => (
+            <SectionReveal key={card.title} delay={i * 0.05}>
+              <motion.div
+                whileHover={{ scale: 1.02, y: -4 }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                className={`${card.span} bento-card bg-gradient-to-br ${card.color} p-6 cursor-default group`}
+              >
+                <div className="text-3xl mb-3 group-hover:scale-110 transition-transform duration-300">{card.emoji}</div>
+                <h3 className="font-semibold text-sm mb-1">{card.title}</h3>
+                <p className="text-xs text-text-secondary leading-relaxed">{card.text}</p>
+              </motion.div>
+            </SectionReveal>
+          ))}
         </div>
       </section>
 
