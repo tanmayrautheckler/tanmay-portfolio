@@ -49,7 +49,7 @@ function VerticalBar({ name, value, color, delay }: { name: string; value: numbe
       initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: false, margin: "-80px" }}
-      transition={{ duration: 0.6, delay }}
+      transition={{ duration: 0.4, delay }}
       className="flex flex-col items-center gap-2 group cursor-default"
     >
       <div className="relative w-full" style={{ height: maxHeight }}>
@@ -60,7 +60,7 @@ function VerticalBar({ name, value, color, delay }: { name: string; value: numbe
           initial={{ height: 0 }}
           whileInView={{ height: `${(value / 100) * maxHeight}px` }}
           viewport={{ once: false, margin: "-80px" }}
-          transition={{ duration: 1.2, delay: delay + 0.3, ease: [0.25, 0.1, 0.25, 1] }}
+          transition={{ duration: 0.8, delay: delay + 0.1, ease: [0.25, 0.1, 0.25, 1] }}
           className={`absolute bottom-0 left-0 right-0 ${color} rounded-2xl flex items-end justify-center pb-4 transition-all duration-500 group-hover:shadow-[0_0_30px_rgba(255,255,255,0.15)] group-hover:scale-[1.03] group-hover:brightness-110`}
         >
           {/* Shimmer overlay */}
@@ -78,7 +78,7 @@ function VerticalBar({ name, value, color, delay }: { name: string; value: numbe
             initial={{ opacity: 0, scale: 0.5 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: false, margin: "-80px" }}
-            transition={{ duration: 0.5, delay: delay + 1.2 }}
+            transition={{ duration: 0.3, delay: delay + 0.6 }}
           >
             {value}<span className="text-lg">%</span>
           </motion.span>
@@ -89,7 +89,7 @@ function VerticalBar({ name, value, color, delay }: { name: string; value: numbe
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
         viewport={{ once: false, margin: "-80px" }}
-        transition={{ delay: delay + 1 }}
+        transition={{ delay: delay + 0.5 }}
       >
         {name}
       </motion.span>
@@ -263,7 +263,7 @@ export default function About() {
         </SectionReveal>
         <div className="grid grid-cols-5 gap-4 md:gap-6">
           {barSkills.map((skill, i) => (
-            <VerticalBar key={skill.name} {...skill} delay={i * 0.1} />
+            <VerticalBar key={skill.name} {...skill} delay={i * 0.05} />
           ))}
         </div>
         {/* Scale labels */}
