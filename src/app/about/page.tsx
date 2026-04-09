@@ -25,7 +25,7 @@ const barSkills = [
 const photoStrip = [
   { src: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=300&q=80", alt: "Travel" },
   { src: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=300&q=80", alt: "Soccer" },
-  { src: "/images/headshot.jpeg", alt: "Me" },
+  { src: "/tanmay-portfolio/images/headshot.jpeg", alt: "Me" },
   { src: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=300&q=80", alt: "Workspace" },
   { src: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=300&q=80", alt: "Coding" },
   { src: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&q=80", alt: "Mountains" },
@@ -132,7 +132,7 @@ export default function About() {
           <SectionReveal delay={0.2}>
             <div className="w-64 md:w-80 aspect-[3/4] rounded-3xl overflow-hidden relative">
               <Image
-                src="/images/headshot.jpeg"
+                src="/tanmay-portfolio/images/headshot.jpeg"
                 alt="Tanmay Raut"
                 fill
                 className="object-cover"

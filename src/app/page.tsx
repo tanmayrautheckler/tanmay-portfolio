@@ -81,7 +81,7 @@ export default function Home() {
           {/* Photo card — 4 cols, 3 rows */}
           <BentoCard className="col-span-2 md:col-span-4 row-span-3 relative img-zoom" delay={0.1}>
             <Image
-              src="/images/headshot.jpeg"
+              src="/tanmay-portfolio/images/headshot.jpeg"
               alt="Tanmay Raut"
               fill
               className="object-cover"
