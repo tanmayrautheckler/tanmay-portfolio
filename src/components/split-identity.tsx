@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import Image from "next/image";
+import { motion } from "framer-motion";
 
 export function SplitIdentity() {
   const [sliderPos, setSliderPos] = useState(50);
@@ -218,22 +217,14 @@ export function SplitIdentity() {
         className="absolute top-0 bottom-0 z-20 flex items-center"
         style={{ left: `${sliderPos}%`, transform: "translateX(-50%)" }}
       >
-        <div className="w-px h-full bg-white/20" />
-        {/* Photo circle at center */}
-        <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-20 h-20 md:w-24 md:h-24 rounded-full overflow-hidden border-2 border-white/40 shadow-2xl cursor-grab active:cursor-grabbing">
-          <Image
-            src="/tanmay-portfolio/images/headshot.jpeg"
-            alt="Tanmay Raut"
-            fill
-            className="object-cover"
-            sizes="96px"
-          />
-        </div>
-        {/* Drag arrows below photo */}
-        <div className="absolute top-1/2 mt-16 md:mt-20 -translate-x-1/2 flex items-center gap-1 text-white/40">
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M8 2L4 6L8 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
-          <span className="text-[9px] font-mono">drag</span>
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M4 2L8 6L4 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+        {/* Glowing line */}
+        <div className="w-px h-full bg-gradient-to-b from-transparent via-white/40 to-transparent" />
+        {/* Handle */}
+        <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-10 h-10 rounded-full bg-white/10 backdrop-blur-md border border-white/30 flex items-center justify-center cursor-grab active:cursor-grabbing shadow-[0_0_20px_rgba(255,255,255,0.15)]">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M4 7H1M4 7L2 5M4 7L2 9" stroke="white" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M10 7H13M10 7L12 5M10 7L12 9" stroke="white" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
         </div>
       </div>
     </div>
