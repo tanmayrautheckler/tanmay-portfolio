@@ -160,8 +160,8 @@ export function SplitIdentity() {
               key={i}
               className="absolute"
               style={{ left: gear.x, top: gear.y }}
-              animate={{ rotate: 360 }}
-              transition={{ duration: Math.abs(gear.speed), repeat: Infinity, ease: "linear", direction: gear.speed > 0 ? "normal" : "reverse" }}
+              animate={{ rotate: gear.speed > 0 ? 360 : -360 }}
+              transition={{ duration: Math.abs(gear.speed), repeat: Infinity, ease: "linear" }}
             >
               <svg width={gear.size} height={gear.size} viewBox="0 0 100 100" className="opacity-20">
                 <path d="M50 10 L55 25 L65 15 L60 30 L75 25 L65 35 L80 40 L65 45 L75 55 L60 50 L65 65 L55 55 L50 70 L45 55 L35 65 L40 50 L25 55 L35 45 L20 40 L35 35 L25 25 L40 30 L35 15 L45 25 Z"
