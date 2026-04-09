@@ -25,9 +25,9 @@ const barSkills = [
 
 const photoStrip = [
   { src: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=300&q=80", alt: "Travel" },
-  { src: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=300&q=80", alt: "Soccer" },
+  { src: "https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?w=300&q=80", alt: "Soccer" },
   { src: "/tanmay-portfolio/images/headshot.jpeg", alt: "Me" },
-  { src: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=300&q=80", alt: "Workspace" },
+  { src: "https://images.unsplash.com/photo-1483058712412-4245e9b90334?w=300&q=80", alt: "Workspace" },
   { src: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=300&q=80", alt: "Coding" },
   { src: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&q=80", alt: "Mountains" },
 ];
@@ -141,16 +141,24 @@ export default function About() {
         <StaggerContainer className="grid grid-cols-3 md:grid-cols-6 gap-3">
           {photoStrip.map((photo, i) => (
             <StaggerItem key={photo.alt}>
-              <div className="aspect-square rounded-2xl overflow-hidden relative img-zoom">
+              <motion.div
+                whileHover={{ scale: 1.05, y: -4 }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                className="aspect-square rounded-2xl overflow-hidden relative group cursor-default"
+              >
                 <Image
                   src={photo.src}
                   alt={photo.alt}
                   fill
-                  className="object-cover"
+                  className="object-cover transition-transform duration-700 group-hover:scale-110"
                   sizes="(max-width: 768px) 33vw, 16vw"
                   unoptimized={photo.src.startsWith("http")}
                 />
-              </div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="absolute bottom-2 left-2 right-2 text-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <span className="text-white text-[11px] font-medium">{photo.alt}</span>
+                </div>
+              </motion.div>
             </StaggerItem>
           ))}
         </StaggerContainer>
