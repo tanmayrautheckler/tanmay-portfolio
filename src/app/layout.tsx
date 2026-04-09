@@ -3,6 +3,7 @@ import { Inter, JetBrains_Mono } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { Nav } from "@/components/nav";
 import { Footer } from "@/components/footer";
+import { InteractiveEffects } from "@/components/interactive-wrapper";
 import "./globals.css";
 
 const inter = Inter({
@@ -44,6 +45,7 @@ export default function RootLayout({
             {children}
           </main>
           <Footer />
+          <InteractiveEffects />
         </ThemeProvider>
       </body>
     </html>

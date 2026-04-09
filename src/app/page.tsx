@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
+import { useRef, useState } from "react";
 import { ArrowRight, ArrowUpRight, MapPin, Briefcase, Plane, Trophy, TrendingUp, Lightbulb, BookOpen } from "lucide-react";
 import { SectionReveal, StaggerContainer, StaggerItem } from "@/components/section-reveal";
 import { InstagramIcon, LinkedinIcon, GithubIcon } from "@/components/social-icons";
@@ -30,15 +31,32 @@ const interests = [
   { icon: BookOpen, label: "Philosophy" },
 ];
 
-function BentoCard({ children, className = "", delay = 0, style }: { children: React.ReactNode; className?: string; delay?: number; style?: React.CSSProperties }) {
+function BentoCard({ children, className = "", delay = 0, style, tilt = false }: { children: React.ReactNode; className?: string; delay?: number; style?: React.CSSProperties; tilt?: boolean }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [transform, setTransform] = useState("perspective(800px) rotateX(0deg) rotateY(0deg)");
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!tilt || !ref.current) return;
+    const rect = ref.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const rotateX = ((y - rect.height / 2) / (rect.height / 2)) * -5;
+    const rotateY = ((x - rect.width / 2) / (rect.width / 2)) * 5;
+    setTransform(`perspective(800px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`);
+  };
+  const handleMouseLeave = () => setTransform("perspective(800px) rotateX(0deg) rotateY(0deg)");
+
   return (
     <motion.div
+      ref={ref}
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: false, margin: "-50px" }}
       transition={{ duration: 0.6, delay, ease: [0.25, 0.1, 0.25, 1] }}
       className={`bento-card ${className}`}
-      style={style}
+      style={{ ...style, transform: tilt ? transform : undefined, transition: "transform 0.15s ease-out" }}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
     >
       {children}
     </motion.div>
@@ -105,7 +123,7 @@ export default function Home() {
           ))}
 
           {/* CTA card */}
-          <BentoCard className="col-span-2 md:col-span-6 row-span-2 p-8 md:p-10 flex flex-col justify-between mesh-gradient-2" delay={0.3}>
+          <BentoCard className="col-span-2 md:col-span-6 row-span-2 p-8 md:p-10 flex flex-col justify-between mesh-gradient-2" delay={0.3} tilt>
             <div>
               <h2 className="text-2xl md:text-3xl font-bold tracking-tight mb-3">
                 What I Do
@@ -120,7 +138,7 @@ export default function Home() {
           </BentoCard>
 
           {/* Skills mini card */}
-          <BentoCard className="col-span-2 md:col-span-3 row-span-2 p-6 flex flex-col justify-between" delay={0.35}>
+          <BentoCard className="col-span-2 md:col-span-3 row-span-2 p-6 flex flex-col justify-between" delay={0.35} tilt>
             <div>
               <div className="text-xs text-text-secondary uppercase tracking-wider mb-4">Core Skills</div>
               <div className="flex flex-wrap gap-1.5">
@@ -135,7 +153,7 @@ export default function Home() {
           </BentoCard>
 
           {/* Interests card */}
-          <BentoCard className="col-span-2 md:col-span-3 row-span-2 p-6 flex flex-col justify-between mesh-gradient-3" delay={0.4}>
+          <BentoCard className="col-span-2 md:col-span-3 row-span-2 p-6 flex flex-col justify-between mesh-gradient-3" delay={0.4} tilt>
             <div>
               <div className="text-xs text-text-secondary uppercase tracking-wider mb-4">Beyond Work</div>
               <div className="flex gap-3">

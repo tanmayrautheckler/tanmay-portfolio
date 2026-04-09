@@ -49,6 +49,11 @@ body {
 }
 
 ::selection { background: var(--accent); color: #000; }
+
+/* Hide default cursor on desktop (custom cursor active) */
+@media (pointer: fine) {
+  * { cursor: none !important; }
+}
 html { scroll-behavior: smooth; }
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
