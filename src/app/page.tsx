@@ -8,6 +8,7 @@ import { useRef, useState } from "react";
 import { ArrowRight, ArrowUpRight, MapPin, Briefcase, Plane, Trophy, TrendingUp, Lightbulb, BookOpen } from "lucide-react";
 import { SectionReveal, StaggerContainer, StaggerItem } from "@/components/section-reveal";
 import { InstagramIcon, LinkedinIcon, GithubIcon } from "@/components/social-icons";
+import { TechLogos } from "@/components/tech-logos";
 import { projects } from "@/data/projects";
 
 const HeroScene = dynamic(() => import("@/components/hero-scene").then(mod => ({ default: mod.HeroScene })), {
@@ -244,8 +245,15 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ═══ LIGHT BAR ═══ */}
-      <div className="light-bar my-4" />
+      {/* ═══ TECH LOGOS BANNER ═══ */}
+      <section className="py-6 border-y border-border my-4">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 mb-4">
+          <p className="font-mono text-[10px] text-text-secondary uppercase tracking-[0.3em]">
+            Technologies &amp; Integrations
+          </p>
+        </div>
+        <TechLogos />
+      </section>
 
       {/* ═══ EXPERIENCE + ABOUT BENTO ═══ */}
       <section className="py-4">

@@ -221,3 +221,15 @@ html { scroll-behavior: smooth; }
     linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
 }
+
+/* ═══ MARQUEE (scrolling logo banner) ═══ */
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-33.333%); }
+}
+.marquee {
+  animation: marquee 25s linear infinite;
+}
+.marquee:hover {
+  animation-play-state: paused;
+}
