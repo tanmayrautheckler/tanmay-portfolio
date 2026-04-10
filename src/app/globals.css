@@ -222,6 +222,35 @@ html { scroll-behavior: smooth; }
     linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
 }
 
+/* ═══ HOLOGRAPHIC CARD — theme tokens ═══ */
+.holo-card {
+  --holo-bg: rgba(0, 0, 0, 0.02);
+  --holo-border: rgba(0, 0, 0, 0.08);
+  --holo-text: rgba(0, 0, 0, 0.88);
+  --holo-text-dim: rgba(0, 0, 0, 0.45);
+  --holo-text-muted: rgba(0, 0, 0, 0.35);
+  --holo-pill-bg: rgba(0, 0, 0, 0.03);
+  --holo-shimmer: rgba(0, 0, 0, 0.03);
+  --holo-highlight: rgba(255, 255, 255, 0.7);
+  --holo-shadow: 0 2px 16px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  background: var(--holo-bg);
+  border-color: var(--holo-border);
+  box-shadow: var(--holo-shadow);
+  backdrop-filter: blur(24px) saturate(1.2);
+  -webkit-backdrop-filter: blur(24px) saturate(1.2);
+}
+.dark .holo-card {
+  --holo-bg: rgba(255, 255, 255, 0.015);
+  --holo-border: rgba(255, 255, 255, 0.05);
+  --holo-text: rgba(255, 255, 255, 0.9);
+  --holo-text-dim: rgba(255, 255, 255, 0.35);
+  --holo-text-muted: rgba(255, 255, 255, 0.25);
+  --holo-pill-bg: rgba(255, 255, 255, 0.03);
+  --holo-shimmer: rgba(255, 255, 255, 0.04);
+  --holo-highlight: rgba(255, 255, 255, 0.05);
+  --holo-shadow: 0 2px 16px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.02);
+}
+
 /* ═══ MARQUEE (scrolling logo banner) ═══ */
 @keyframes marquee {
   0% { transform: translateX(0); }
