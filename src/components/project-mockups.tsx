@@ -324,11 +324,11 @@ export function RMAFormView() {
 
 export function RMAFlowDiagram() {
   return (
-    <div className="bg-white/[0.02] rounded-xl border border-white/5 p-6 md:p-8">
-      <div className="text-[11px] text-white/30 uppercase tracking-wider mb-6 text-center">vendor.rma State Machine</div>
+    <div className="bg-[#0c1222] rounded-xl border border-slate-700/50 p-6 md:p-8">
+      <div className="text-[11px] text-slate-400 uppercase tracking-wider mb-6 text-center">vendor.rma State Machine</div>
       <div className="flex flex-col md:flex-row items-center justify-center gap-3 md:gap-2">
         {[
-          { label: "Draft", sub: "Create RMA", color: "border-white/20 text-white/40" },
+          { label: "Draft", sub: "Create RMA", color: "border-slate-500/30 text-slate-400" },
           { label: "Sent", sub: "Email + portal", color: "border-cyan-400/30 text-cyan-400" },
           { label: "Vendor Responded", sub: "Dispositions set", color: "border-amber-400/30 text-amber-400" },
           { label: "Confirmed", sub: "Auto-generate docs", color: "border-purple-400/30 text-purple-400" },
@@ -339,18 +339,18 @@ export function RMAFlowDiagram() {
               <div className="text-[11px] font-medium">{step.label}</div>
               <div className="text-[9px] opacity-50 mt-0.5">{step.sub}</div>
             </div>
-            {i < 4 && <div className="text-white/10 text-sm hidden md:block">→</div>}
+            {i < 4 && <div className="text-slate-600 text-sm hidden md:block">→</div>}
           </div>
         ))}
       </div>
       <div className="mt-4 text-center">
         <div className="inline-block border border-amber-400/20 rounded-lg px-3 py-2 text-center">
           <div className="text-[11px] text-amber-400">Awaiting Parts</div>
-          <div className="text-[9px] text-white/20">replacement/rework in transit</div>
+          <div className="text-[9px] text-slate-500">replacement/rework in transit</div>
         </div>
-        <div className="text-[9px] text-white/15 mt-1">↑ branches from Confirmed when disposition requires replacement</div>
+        <div className="text-[9px] text-slate-600 mt-1">↑ branches from Confirmed when disposition requires replacement</div>
       </div>
-      <div className="mt-6 flex justify-center gap-6 text-[10px] text-white/20">
+      <div className="mt-6 flex justify-center gap-6 text-[10px] text-slate-400">
         <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-emerald-400/40" /> Draft Credit Note</div>
         <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-amber-400/40" /> Return Picking</div>
         <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-rose-400/40" /> Scrap Record</div>
@@ -367,10 +367,10 @@ export function RMADispositionGrid() {
         { name: "Credit, Scrap & Replace", desc: "Credit + scrap + replacement receipt", icon: "↻$", color: "text-cyan-400 border-cyan-400/20" },
         { name: "Return, Credit & Rework", desc: "Ship back + credit + reworked part", icon: "↩$", color: "text-purple-400 border-purple-400/20" },
         { name: "Replace (No Credit)", desc: "Vendor sends replacement only", icon: "↻", color: "text-amber-400 border-amber-400/20" },
-        { name: "Heckler Touch-Up", desc: "In-house repair, no vendor action", icon: "⚙", color: "text-white/40 border-white/10" },
+        { name: "Heckler Touch-Up", desc: "In-house repair, no vendor action", icon: "⚙", color: "text-slate-400 border-slate-500/20" },
         { name: "Scrap (Heckler Fault)", desc: "Scrap, no credit — our mistake", icon: "✕", color: "text-rose-400 border-rose-400/20" },
       ].map((d) => (
-        <div key={d.name} className={`border rounded-lg p-3 bg-white/[0.02] ${d.color}`}>
+        <div key={d.name} className={`border rounded-lg p-3 bg-[#0c1222] ${d.color}`}>
           <div className="text-lg mb-1 opacity-60">{d.icon}</div>
           <div className="text-[12px] font-medium">{d.name}</div>
           <div className="text-[10px] opacity-40 mt-0.5">{d.desc}</div>
@@ -382,8 +382,8 @@ export function RMADispositionGrid() {
 
 export function RMADefectTypes() {
   return (
-    <div className="bg-white/[0.02] rounded-xl border border-white/5 p-6">
-      <div className="text-[11px] text-white/30 uppercase tracking-wider mb-4">15 Defect Types (from actual module)</div>
+    <div className="bg-[#0c1222] rounded-xl border border-slate-700/50 p-6">
+      <div className="text-[11px] text-slate-400 uppercase tracking-wider mb-4">15 Defect Types (from actual module)</div>
       <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
         {[
           "Scratched / Cosmetic", "Structural / Welding", "Loose PEM / Post",
@@ -392,14 +392,14 @@ export function RMADefectTypes() {
           "Fit / Assembly Problem", "Bent", "PEM Press Issue",
           "Damaged in Shipping", "Wrong Metal / Material", "Other",
         ].map((defect) => (
-          <div key={defect} className="text-[11px] text-white/30 bg-white/3 rounded px-2.5 py-1.5 border border-white/5">
+          <div key={defect} className="text-[11px] text-slate-300 bg-slate-800/50 rounded px-2.5 py-1.5 border border-slate-700/30">
             {defect}
           </div>
         ))}
       </div>
-      <div className="mt-4 flex gap-4 text-[10px] text-white/20">
-        <span>Severity: <span className="text-rose-400">Critical</span> / <span className="text-amber-400">Major</span> / <span className="text-white/30">Minor</span></span>
-        <span>Fault: <span className="text-rose-400">Vendor 100%</span> / <span className="text-amber-400">Shared 50/50</span> / <span className="text-white/30">Heckler 0%</span></span>
+      <div className="mt-4 flex gap-4 text-[10px] text-slate-500">
+        <span>Severity: <span className="text-rose-400">Critical</span> / <span className="text-amber-400">Major</span> / <span className="text-slate-400">Minor</span></span>
+        <span>Fault: <span className="text-rose-400">Vendor 100%</span> / <span className="text-amber-400">Shared 50/50</span> / <span className="text-slate-400">Heckler 0%</span></span>
       </div>
     </div>
   );
@@ -874,7 +874,7 @@ export function ScreenshotFrame({ src, alt, caption }: { src: string; alt: strin
           priority={false}
         />
       </div>
-      {caption && <p className="text-[12px] text-white/25 mt-3">{caption}</p>}
+      {caption && <p className="text-[12px] text-text-secondary/60 mt-3">{caption}</p>}
     </div>
   );
 }
