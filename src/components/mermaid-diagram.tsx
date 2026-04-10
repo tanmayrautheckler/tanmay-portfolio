@@ -40,47 +40,90 @@ export default function MermaidDiagram({ chart, caption, className = "" }: Merma
     const renderChart = async () => {
       try {
         const mermaid = (await import("mermaid")).default;
+        const isDark = document.documentElement.classList.contains("dark");
+
+        const darkVars = {
+          darkMode: true,
+          background: "transparent",
+          primaryColor: "#0EBBFF",
+          primaryTextColor: "#e2e8f0",
+          primaryBorderColor: "#0EBBFF44",
+          secondaryColor: "#8b5cf6",
+          secondaryTextColor: "#e2e8f0",
+          secondaryBorderColor: "#8b5cf644",
+          tertiaryColor: "#22c55e",
+          tertiaryTextColor: "#e2e8f0",
+          tertiaryBorderColor: "#22c55e44",
+          lineColor: "#475569",
+          textColor: "#94a3b8",
+          mainBkg: "#1e293b",
+          nodeBorder: "#334155",
+          clusterBkg: "#0f172a",
+          clusterBorder: "#1e293b",
+          titleColor: "#e2e8f0",
+          edgeLabelBackground: "#0f172a",
+          nodeTextColor: "#e2e8f0",
+          actorTextColor: "#e2e8f0",
+          actorBkg: "#1e293b",
+          actorBorder: "#0EBBFF44",
+          actorLineColor: "#475569",
+          signalColor: "#94a3b8",
+          signalTextColor: "#e2e8f0",
+          labelBoxBkgColor: "#1e293b",
+          labelBoxBorderColor: "#334155",
+          labelTextColor: "#e2e8f0",
+          loopTextColor: "#94a3b8",
+          noteBkgColor: "#1e293b",
+          noteBorderColor: "#0EBBFF44",
+          noteTextColor: "#e2e8f0",
+          activationBkgColor: "#1e293b",
+          activationBorderColor: "#0EBBFF44",
+          sequenceNumberColor: "#0EBBFF",
+        };
+
+        const lightVars = {
+          darkMode: false,
+          background: "transparent",
+          primaryColor: "#0099dd",
+          primaryTextColor: "#1e293b",
+          primaryBorderColor: "#0099dd44",
+          secondaryColor: "#7c3aed",
+          secondaryTextColor: "#1e293b",
+          secondaryBorderColor: "#7c3aed44",
+          tertiaryColor: "#16a34a",
+          tertiaryTextColor: "#1e293b",
+          tertiaryBorderColor: "#16a34a44",
+          lineColor: "#94a3b8",
+          textColor: "#334155",
+          mainBkg: "#f1f5f9",
+          nodeBorder: "#cbd5e1",
+          clusterBkg: "#f8fafc",
+          clusterBorder: "#e2e8f0",
+          titleColor: "#0f172a",
+          edgeLabelBackground: "#f8fafc",
+          nodeTextColor: "#1e293b",
+          actorTextColor: "#1e293b",
+          actorBkg: "#f1f5f9",
+          actorBorder: "#0099dd44",
+          actorLineColor: "#94a3b8",
+          signalColor: "#475569",
+          signalTextColor: "#1e293b",
+          labelBoxBkgColor: "#f1f5f9",
+          labelBoxBorderColor: "#cbd5e1",
+          labelTextColor: "#1e293b",
+          loopTextColor: "#475569",
+          noteBkgColor: "#f1f5f9",
+          noteBorderColor: "#0099dd44",
+          noteTextColor: "#1e293b",
+          activationBkgColor: "#f1f5f9",
+          activationBorderColor: "#0099dd44",
+          sequenceNumberColor: "#0099dd",
+        };
+
         mermaid.initialize({
           startOnLoad: false,
-          theme: "dark",
-          themeVariables: {
-            darkMode: true,
-            background: "transparent",
-            primaryColor: "#0EBBFF",
-            primaryTextColor: "#e2e8f0",
-            primaryBorderColor: "#0EBBFF44",
-            secondaryColor: "#8b5cf6",
-            secondaryTextColor: "#e2e8f0",
-            secondaryBorderColor: "#8b5cf644",
-            tertiaryColor: "#22c55e",
-            tertiaryTextColor: "#e2e8f0",
-            tertiaryBorderColor: "#22c55e44",
-            lineColor: "#475569",
-            textColor: "#94a3b8",
-            mainBkg: "#1e293b",
-            nodeBorder: "#334155",
-            clusterBkg: "#0f172a",
-            clusterBorder: "#1e293b",
-            titleColor: "#e2e8f0",
-            edgeLabelBackground: "#0f172a",
-            nodeTextColor: "#e2e8f0",
-            actorTextColor: "#e2e8f0",
-            actorBkg: "#1e293b",
-            actorBorder: "#0EBBFF44",
-            actorLineColor: "#475569",
-            signalColor: "#94a3b8",
-            signalTextColor: "#e2e8f0",
-            labelBoxBkgColor: "#1e293b",
-            labelBoxBorderColor: "#334155",
-            labelTextColor: "#e2e8f0",
-            loopTextColor: "#94a3b8",
-            noteBkgColor: "#1e293b",
-            noteBorderColor: "#0EBBFF44",
-            noteTextColor: "#e2e8f0",
-            activationBkgColor: "#1e293b",
-            activationBorderColor: "#0EBBFF44",
-            sequenceNumberColor: "#0EBBFF",
-          },
+          theme: isDark ? "dark" : "default",
+          themeVariables: isDark ? darkVars : lightVars,
           flowchart: { htmlLabels: true, curve: "basis", padding: 15 },
           sequence: {
             actorMargin: 50,
@@ -114,7 +157,7 @@ export default function MermaidDiagram({ chart, caption, className = "" }: Merma
         initial={{ opacity: 0, y: 20, scale: 0.98 }}
         animate={isInView ? { opacity: 1, y: 0, scale: 1 } : {}}
         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-        className="bg-white/[0.02] backdrop-blur-sm rounded-xl border border-white/5 p-6 md:p-8 overflow-x-auto"
+        className="bg-surface backdrop-blur-sm rounded-xl border border-border p-6 md:p-8 overflow-x-auto"
       >
         <div
           ref={svgHost}
@@ -122,8 +165,8 @@ export default function MermaidDiagram({ chart, caption, className = "" }: Merma
         />
         {loading && (
           <div className="flex items-center justify-center h-32">
-            <div className="flex items-center gap-3 text-white/20 text-sm">
-              <div className="w-4 h-4 border-2 border-white/20 border-t-cyan-400 rounded-full animate-spin" />
+            <div className="flex items-center gap-3 text-text-secondary text-sm">
+              <div className="w-4 h-4 border-2 border-border border-t-accent rounded-full animate-spin" />
               Rendering diagram...
             </div>
           </div>
@@ -134,7 +177,7 @@ export default function MermaidDiagram({ chart, caption, className = "" }: Merma
           initial={{ opacity: 0 }}
           animate={isInView ? { opacity: 1 } : {}}
           transition={{ delay: 0.4, duration: 0.6 }}
-          className="text-[12px] text-white/20 mt-3"
+          className="text-[12px] text-text-secondary/60 mt-3"
         >
           {caption}
         </motion.p>
