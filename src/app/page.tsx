@@ -9,6 +9,8 @@ import { ArrowRight, ArrowUpRight, MapPin, Briefcase, Plane, Trophy, TrendingUp,
 import { SectionReveal, StaggerContainer, StaggerItem } from "@/components/section-reveal";
 import { InstagramIcon, LinkedinIcon, GithubIcon } from "@/components/social-icons";
 import { TechLogos } from "@/components/tech-logos";
+import { TextScramble } from "@/components/text-scramble";
+import { DraggableStickers } from "@/components/draggable-stickers";
 import { projects } from "@/data/projects";
 
 const HeroScene = dynamic(() => import("@/components/hero-scene").then(mod => ({ default: mod.HeroScene })), {
@@ -65,6 +67,7 @@ function BentoCard({ children, className = "", delay = 0, style, tilt = false }:
 }
 
 export default function Home() {
+  const heroRef = useRef<HTMLDivElement>(null);
   return (
     <div className="max-w-7xl mx-auto px-4 md:px-6">
       {/* ═══ HERO BENTO GRID ═══ */}
@@ -73,6 +76,7 @@ export default function Home() {
 
           {/* Main hero — spans 8 cols, 3 rows */}
           <motion.div
+            ref={heroRef}
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: false, margin: "-50px" }}
@@ -81,12 +85,13 @@ export default function Home() {
             style={{ background: "#0a0a0f", border: "1px solid #1d1d1f" }}
           >
             <HeroScene />
+            <DraggableStickers constraintsRef={heroRef} />
             <div className="glow-orb w-[400px] h-[400px] bg-accent/20 -top-20 -right-20" />
             <div className="glow-orb w-[300px] h-[300px] bg-purple-500/15 bottom-0 left-0" />
             <div className="relative z-10">
-              <p className="text-cyan-400 text-xs font-mono tracking-[0.25em] uppercase mb-4 flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-cyan-400 pulse-dot" />
-                Business Systems Architect
+              <p className="text-accent text-xs font-mono tracking-[0.25em] uppercase mb-4 flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-accent pulse-dot" />
+                <TextScramble words={["Systems Architect", "ERP Strategist", "Process Designer", "Manufacturing Tech"]} />
               </p>
               <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-[-0.03em] leading-[0.9] mb-4">
                 <span className="bg-gradient-to-r from-cyan-400 via-violet-400 to-pink-400 bg-clip-text text-transparent">Tanmay</span> <span className="text-white">Raut</span>

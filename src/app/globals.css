@@ -388,3 +388,56 @@ html { scroll-behavior: smooth; }
 .marquee:hover {
   animation-play-state: paused;
 }
+
+/* ═══ RECEIPT PAPER ═══ */
+.receipt-paper {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  position: relative;
+  overflow: hidden;
+}
+.dark .receipt-paper {
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+}
+
+.receipt-zigzag {
+  width: 100%;
+  height: 12px;
+  background: repeating-linear-gradient(
+    135deg,
+    transparent,
+    transparent 5px,
+    var(--border) 5px,
+    var(--border) 10px
+  );
+  opacity: 0.5;
+}
+
+.receipt-divider {
+  border: none;
+  border-top: 1px dashed var(--border);
+  margin: 0;
+}
+
+.receipt-barcode {
+  width: 60%;
+  height: 28px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--foreground) 0px,
+    var(--foreground) 2px,
+    transparent 2px,
+    transparent 4px,
+    var(--foreground) 4px,
+    var(--foreground) 5px,
+    transparent 5px,
+    transparent 8px,
+    var(--foreground) 8px,
+    var(--foreground) 9px,
+    transparent 9px,
+    transparent 11px
+  );
+  opacity: 0.15;
+}
