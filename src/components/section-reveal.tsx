@@ -12,17 +12,17 @@ interface SectionRevealProps {
 
 export function SectionReveal({ children, className, delay = 0, direction = "up" }: SectionRevealProps) {
   const directionMap = {
-    up: { y: 40, x: 0 },
-    left: { y: 0, x: -40 },
-    right: { y: 0, x: 40 },
+    up: { y: 24, x: 0 },
+    left: { y: 0, x: -24 },
+    right: { y: 0, x: 24 },
   };
 
   return (
     <motion.div
       initial={{ opacity: 0, ...directionMap[direction] }}
       whileInView={{ opacity: 1, y: 0, x: 0 }}
-      viewport={{ once: false, margin: "-80px" }}
-      transition={{ duration: 0.6, delay, ease: [0.25, 0.46, 0.45, 0.94] }}
+      viewport={{ once: true, margin: "-40px" }}
+      transition={{ duration: 0.4, delay: Math.min(delay, 0.15), ease: [0.25, 0.46, 0.45, 0.94] }}
       className={className}
     >
       {children}
@@ -35,10 +35,10 @@ export function StaggerContainer({ children, className }: { children: ReactNode;
     <motion.div
       initial="hidden"
       whileInView="visible"
-      viewport={{ once: false, margin: "-80px" }}
+      viewport={{ once: true, margin: "-40px" }}
       variants={{
         hidden: {},
-        visible: { transition: { staggerChildren: 0.1 } },
+        visible: { transition: { staggerChildren: 0.06 } },
       }}
       className={className}
     >

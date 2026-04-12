@@ -6,8 +6,11 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { SectionReveal, StaggerContainer, StaggerItem } from "@/components/section-reveal";
 import { SplitIdentity } from "@/components/split-identity";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Volume2, VolumeX } from "lucide-react";
+import { useNatureSounds } from "@/hooks/use-nature-sounds";
 import { LinkedinIcon, GithubIcon, InstagramIcon } from "@/components/social-icons";
+
+const NatureScene = dynamic(() => import("@/components/nature-scene").then(m => ({ default: m.NatureScene })), { ssr: false });
 
 const CareerJourney = dynamic(() => import("@/components/career-journey").then(mod => ({ default: mod.CareerJourney })), {
   ssr: false,
@@ -24,12 +27,12 @@ const barSkills = [
 ];
 
 const photoStrip = [
-  { src: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=300&q=80", alt: "Travel" },
-  { src: "https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?w=300&q=80", alt: "Soccer" },
-  { src: "/tanmay-portfolio/images/headshot.jpeg", alt: "Me" },
-  { src: "https://images.unsplash.com/photo-1483058712412-4245e9b90334?w=300&q=80", alt: "Workspace" },
-  { src: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=300&q=80", alt: "Coding" },
-  { src: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&q=80", alt: "Mountains" },
+  { src: "/tanmay-portfolio/images/lifestyle/skydiving.jpg", alt: "Skydiving" },
+  { src: "/tanmay-portfolio/images/lifestyle/camping.jpg", alt: "Camping" },
+  { src: "/tanmay-portfolio/images/lifestyle/bmw.jpg", alt: "Road Trips" },
+  { src: "/tanmay-portfolio/images/lifestyle/northern-lights.jpg", alt: "Glamping" },
+  { src: "https://images.unsplash.com/photo-1551632811-561732d1e306?w=300&q=80", alt: "Hiking" },
+  { src: "/tanmay-portfolio/images/lifestyle/la-skyline.jpg", alt: "Exploring" },
 ];
 
 // Random facts removed — replaced by interactive story cards
@@ -49,7 +52,7 @@ function VerticalBar({ name, value, color, delay }: { name: string; value: numbe
     <motion.div
       initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: false, margin: "-80px" }}
+      viewport={{ once: true, margin: "-40px" }}
       transition={{ duration: 0.4, delay }}
       className="flex flex-col items-center gap-2 group cursor-default"
     >
@@ -60,7 +63,7 @@ function VerticalBar({ name, value, color, delay }: { name: string; value: numbe
         <motion.div
           initial={{ height: 0 }}
           whileInView={{ height: `${(value / 100) * maxHeight}px` }}
-          viewport={{ once: false, margin: "-80px" }}
+          viewport={{ once: true, margin: "-40px" }}
           transition={{ duration: 0.8, delay: delay + 0.1, ease: [0.25, 0.1, 0.25, 1] }}
           className={`absolute bottom-0 left-0 right-0 ${color} rounded-2xl flex items-end justify-center pb-4 transition-all duration-500 group-hover:shadow-[0_0_30px_rgba(255,255,255,0.15)] group-hover:scale-[1.03] group-hover:brightness-110`}
         >
@@ -78,7 +81,7 @@ function VerticalBar({ name, value, color, delay }: { name: string; value: numbe
             className="relative text-3xl font-bold text-white drop-shadow-lg"
             initial={{ opacity: 0, scale: 0.5 }}
             whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: false, margin: "-80px" }}
+            viewport={{ once: true, margin: "-40px" }}
             transition={{ duration: 0.3, delay: delay + 0.6 }}
           >
             {value}<span className="text-lg">%</span>
@@ -89,7 +92,7 @@ function VerticalBar({ name, value, color, delay }: { name: string; value: numbe
         className="text-xs text-text-secondary text-center font-medium mt-2 group-hover:text-foreground transition-colors"
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
-        viewport={{ once: false, margin: "-80px" }}
+        viewport={{ once: true, margin: "-40px" }}
         transition={{ delay: delay + 0.5 }}
       >
         {name}
@@ -99,40 +102,58 @@ function VerticalBar({ name, value, color, delay }: { name: string; value: numbe
 }
 
 export default function About() {
+  const { playing, toggle } = useNatureSounds();
   return (
     <div className="max-w-5xl mx-auto px-4 md:px-6">
 
-      {/* ═══ HERO ═══ */}
-      <section className="pt-16 md:pt-24 pb-8">
-        <div className="grid md:grid-cols-[1fr_auto] gap-12 items-start">
-          {/* Text */}
-          <SectionReveal>
-            <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-[0.95] mb-6">
-              about.
-            </h1>
-            <p className="text-xl text-text-secondary leading-relaxed mb-4">
-              I&apos;m an ERP systems engineer based in sunny Phoenix, Arizona.
-            </p>
-            <p className="text-text-secondary leading-relaxed max-w-lg">
-              Since 2020, I&apos;ve been designing how manufacturing businesses operate through their
-              systems — from the factory floor to the financial statements. When I&apos;m not in Odoo,
-              you&apos;ll find me playing soccer, travelling, or reading about philosophy and markets.
-            </p>
-          </SectionReveal>
+      {/* ═══ HERO WITH NATURE SCENE ═══ */}
+      <section className="relative -mx-4 md:-mx-6 overflow-hidden rounded-b-3xl mb-8">
+        {/* Animated nature background */}
+        <div className="absolute inset-0" style={{ minHeight: 500 }}>
+          <NatureScene />
+        </div>
 
-          {/* Photo */}
-          <SectionReveal delay={0.2}>
-            <div className="w-64 md:w-80 aspect-[3/4] rounded-3xl overflow-hidden relative">
-              <Image
-                src="/tanmay-portfolio/images/headshot.jpeg"
-                alt="Tanmay Raut"
-                fill
-                className="object-cover"
-                sizes="320px"
-                priority
-              />
-            </div>
-          </SectionReveal>
+        {/* Sound toggle */}
+        <button
+          onClick={toggle}
+          className="absolute top-4 right-4 z-20 w-10 h-10 rounded-full bg-white/20 dark:bg-black/30 backdrop-blur-md border border-white/30 dark:border-white/10 flex items-center justify-center hover:bg-white/40 dark:hover:bg-black/50 transition-colors"
+          aria-label={playing ? "Mute nature sounds" : "Play nature sounds"}
+        >
+          {playing ? <Volume2 className="w-4 h-4 text-gray-800 dark:text-white" /> : <VolumeX className="w-4 h-4 text-gray-800 dark:text-white" />}
+        </button>
+
+        {/* Content overlay */}
+        <div className="relative z-10 max-w-5xl mx-auto px-4 md:px-6 pt-20 md:pt-28 pb-12">
+          <div className="grid md:grid-cols-[1fr_auto] gap-12 items-start">
+            {/* Text */}
+            <SectionReveal>
+              <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-[0.95] mb-6 text-gray-900 dark:text-white" style={{ textShadow: "0 2px 12px rgba(255,255,255,0.5)" }}>
+                About.
+              </h1>
+              <p className="text-xl text-gray-800 dark:text-white/90 leading-relaxed mb-4 backdrop-blur-sm bg-white/30 dark:bg-black/30 rounded-xl px-4 py-2 inline-block">
+                I&apos;m an ERP systems engineer based in sunny Phoenix, Arizona.
+              </p>
+              <p className="text-gray-700 dark:text-white/75 leading-relaxed max-w-lg backdrop-blur-sm bg-white/30 dark:bg-black/30 rounded-xl px-4 py-3">
+                Since 2020, I&apos;ve been designing how manufacturing businesses operate through their
+                systems — from the factory floor to the financial statements. When I&apos;m not in Odoo,
+                you&apos;ll find me playing soccer, travelling, or reading about philosophy and markets.
+              </p>
+            </SectionReveal>
+
+            {/* Photo */}
+            <SectionReveal delay={0.2}>
+              <div className="w-64 md:w-80 aspect-[3/4] rounded-3xl overflow-hidden relative shadow-2xl ring-2 ring-white/20">
+                <Image
+                  src="/tanmay-portfolio/images/lifestyle/tahoe.jpg"
+                  alt="Tanmay at Lake Tahoe"
+                  fill
+                  className="object-cover object-top"
+                  sizes="320px"
+                  priority
+                />
+              </div>
+            </SectionReveal>
+          </div>
         </div>
       </section>
 
