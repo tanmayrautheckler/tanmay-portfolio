@@ -1,11 +1,12 @@
 "use client";
 
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { OrbitControls, Sphere, Html } from "@react-three/drei";
+import { Canvas, useFrame, useThree, extend } from "@react-three/fiber";
+import { OrbitControls, Sphere, Html, shaderMaterial } from "@react-three/drei";
 import { useRef, useState, Suspense, useMemo, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import * as THREE from "three";
 
+// ─── Data ──────────────────────────────────────────────────
 interface Location {
   name: string;
   lat: number;
@@ -20,11 +21,9 @@ interface Location {
 }
 
 const locations: Location[] = [
-  // Career
   { name: "Manipal", lat: 13.35, lng: 74.79, type: "career", year: "2016–2019", description: "B.Tech Aeronautical Engineering", color: "#f59e0b", blurb: "Where it all began — engineering fundamentals at MIT Manipal" },
   { name: "Mumbai", lat: 19.08, lng: 72.88, type: "career", year: "2020–2022", description: "Production Supervisor — Vats & Vessels", color: "#ef4444", blurb: "Managing 30+ welders & machinists on the factory floor" },
   { name: "Phoenix", lat: 33.45, lng: -112.07, type: "career", year: "2022–Now", description: "ASU → United Foods → Heckler Design", color: "#0EBBFF", blurb: "Master's degree, then building ERP systems that run businesses" },
-  // US
   { name: "Hawaii", lat: 20.80, lng: -156.33, type: "travel-us", color: "#22c55e", blurb: "Paradise on earth" },
   { name: "Florida", lat: 27.99, lng: -81.76, type: "travel-us", color: "#22c55e" },
   { name: "Georgia", lat: 33.75, lng: -84.39, type: "travel-us", color: "#22c55e" },
@@ -43,7 +42,6 @@ const locations: Location[] = [
   { name: "Maryland", lat: 39.29, lng: -76.61, type: "travel-us", color: "#22c55e" },
   { name: "California", lat: 37.77, lng: -122.42, type: "travel-us", color: "#22c55e", blurb: "LA skyline views", photo: "/tanmay-portfolio/images/lifestyle/la-skyline.jpg" },
   { name: "Nevada", lat: 36.17, lng: -115.14, type: "travel-us", color: "#22c55e", blurb: "Vegas lights" },
-  // International
   { name: "India", lat: 20.59, lng: 78.96, type: "travel-intl", color: "#a855f7", flag: "🇮🇳", blurb: "Home" },
   { name: "France", lat: 48.86, lng: 2.35, type: "travel-intl", color: "#a855f7", flag: "🇫🇷", blurb: "Oui oui" },
   { name: "Bahamas", lat: 25.03, lng: -77.35, type: "travel-intl", color: "#a855f7", flag: "🇧🇸", blurb: "Crystal clear waters" },
@@ -61,64 +59,283 @@ function latLngToVec3(lat: number, lng: number, r: number): THREE.Vector3 {
   return new THREE.Vector3(-(r * Math.sin(phi) * Math.cos(theta)), r * Math.cos(phi), r * Math.sin(phi) * Math.sin(theta));
 }
 
-// Animated arc with glowing trail
-function AnimatedArc({ start, end, color, delay }: { start: THREE.Vector3; end: THREE.Vector3; color: string; delay: number }) {
+// ─── Earth Shader ──────────────────────────────────────────
+const EarthMaterial = shaderMaterial(
+  { uTime: 0 },
+  // Vertex
+  `
+  varying vec3 vNormal;
+  varying vec3 vPosition;
+  varying vec2 vUv;
+  void main() {
+    vNormal = normalize(normalMatrix * normal);
+    vPosition = (modelViewMatrix * vec4(position, 1.0)).xyz;
+    vUv = uv;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+  `,
+  // Fragment — procedural earth
+  `
+  uniform float uTime;
+  varying vec3 vNormal;
+  varying vec3 vPosition;
+  varying vec2 vUv;
+
+  // Simple noise
+  float hash(vec2 p) {
+    return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
+  }
+  float noise(vec2 p) {
+    vec2 i = floor(p);
+    vec2 f = fract(p);
+    f = f * f * (3.0 - 2.0 * f);
+    float a = hash(i);
+    float b = hash(i + vec2(1.0, 0.0));
+    float c = hash(i + vec2(0.0, 1.0));
+    float d = hash(i + vec2(1.0, 1.0));
+    return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+  }
+  float fbm(vec2 p) {
+    float v = 0.0;
+    float a = 0.5;
+    for (int i = 0; i < 5; i++) {
+      v += a * noise(p);
+      p *= 2.0;
+      a *= 0.5;
+    }
+    return v;
+  }
+
+  void main() {
+    // Convert UV to lat/lng style coordinates for continent generation
+    vec2 p = vUv * vec2(8.0, 4.0);
+    float land = fbm(p + vec2(0.5, 0.2));
+    land = smoothstep(0.42, 0.52, land);
+
+    // Ocean colors (deep blue to lighter)
+    vec3 deepOcean = vec3(0.02, 0.04, 0.12);
+    vec3 shallowOcean = vec3(0.04, 0.08, 0.18);
+    vec3 oceanColor = mix(deepOcean, shallowOcean, fbm(vUv * 6.0));
+
+    // Land colors
+    vec3 lowland = vec3(0.04, 0.15, 0.06);
+    vec3 highland = vec3(0.12, 0.22, 0.08);
+    vec3 mountain = vec3(0.18, 0.16, 0.12);
+    vec3 snow = vec3(0.7, 0.72, 0.75);
+
+    float elevation = fbm(p * 1.5 + vec2(3.0, 1.0));
+    vec3 landColor = mix(lowland, highland, smoothstep(0.3, 0.5, elevation));
+    landColor = mix(landColor, mountain, smoothstep(0.5, 0.65, elevation));
+    landColor = mix(landColor, snow, smoothstep(0.68, 0.75, elevation));
+
+    // Polar ice caps
+    float polar = abs(vUv.y - 0.5) * 2.0;
+    float ice = smoothstep(0.82, 0.92, polar + fbm(vUv * 10.0) * 0.15);
+    landColor = mix(landColor, vec3(0.8, 0.85, 0.9), ice);
+    oceanColor = mix(oceanColor, vec3(0.5, 0.6, 0.7), ice * 0.5);
+
+    vec3 baseColor = mix(oceanColor, landColor, land);
+
+    // Lighting
+    vec3 lightDir = normalize(vec3(0.5, 0.3, 1.0));
+    float diff = max(dot(vNormal, lightDir), 0.0);
+    float ambient = 0.15;
+    vec3 lit = baseColor * (ambient + diff * 0.85);
+
+    // Specular on ocean
+    vec3 viewDir = normalize(-vPosition);
+    vec3 halfDir = normalize(lightDir + viewDir);
+    float spec = pow(max(dot(vNormal, halfDir), 0.0), 60.0) * (1.0 - land) * 0.4;
+    lit += spec * vec3(0.3, 0.5, 0.8);
+
+    // City lights on dark side
+    float nightSide = smoothstep(0.0, -0.15, dot(vNormal, lightDir));
+    float cities = step(0.72, fbm(vUv * vec2(30.0, 15.0))) * land;
+    lit += nightSide * cities * vec3(1.0, 0.85, 0.4) * 0.6;
+
+    // Subtle ocean shimmer
+    float shimmer = noise(vUv * 40.0 + uTime * 0.02) * (1.0 - land) * 0.03;
+    lit += shimmer * vec3(0.2, 0.4, 0.6);
+
+    gl_FragColor = vec4(lit, 1.0);
+  }
+  `
+);
+extend({ EarthMaterial });
+
+
+// ─── Cloud Shader ──────────────────────────────────────────
+const CloudMaterial = shaderMaterial(
+  { uTime: 0 },
+  `
+  varying vec2 vUv;
+  void main() {
+    vUv = uv;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+  `,
+  `
+  uniform float uTime;
+  varying vec2 vUv;
+  float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+  float noise(vec2 p) {
+    vec2 i = floor(p); vec2 f = fract(p);
+    f = f*f*(3.0-2.0*f);
+    return mix(mix(hash(i),hash(i+vec2(1,0)),f.x), mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),f.x), f.y);
+  }
+  float fbm(vec2 p) {
+    float v=0.0, a=0.5;
+    for(int i=0;i<4;i++){v+=a*noise(p);p*=2.0;a*=0.5;}
+    return v;
+  }
+  void main() {
+    vec2 p = vUv * vec2(6.0, 3.0) + vec2(uTime * 0.008, 0.0);
+    float clouds = fbm(p);
+    clouds = smoothstep(0.45, 0.7, clouds);
+    gl_FragColor = vec4(1.0, 1.0, 1.0, clouds * 0.25);
+  }
+  `
+);
+extend({ CloudMaterial });
+
+// ─── Miniature 3D Airplane ────────────────────────────────
+function AirplaneModel({ color }: { color: string }) {
+  const group = useRef<THREE.Group>(null);
+  return (
+    <group ref={group} scale={[0.025, 0.025, 0.025]}>
+      {/* Fuselage */}
+      <mesh>
+        <cylinderGeometry args={[0.15, 0.3, 2.2, 8]} />
+        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={1.5} metalness={0.8} roughness={0.2} />
+      </mesh>
+      {/* Nose cone */}
+      <mesh position={[0, 1.3, 0]}>
+        <coneGeometry args={[0.15, 0.6, 8]} />
+        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={1.5} metalness={0.8} roughness={0.2} />
+      </mesh>
+      {/* Wings */}
+      <mesh position={[0, 0.2, 0]} rotation={[0, 0, 0]}>
+        <boxGeometry args={[3.2, 0.06, 0.5]} />
+        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={1.0} metalness={0.6} roughness={0.3} />
+      </mesh>
+      {/* Tail wing */}
+      <mesh position={[0, -0.9, 0]}>
+        <boxGeometry args={[1.4, 0.05, 0.35]} />
+        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={1.0} metalness={0.6} roughness={0.3} />
+      </mesh>
+      {/* Vertical stabilizer */}
+      <mesh position={[0, -0.6, 0]} rotation={[0, 0, Math.PI / 2]}>
+        <boxGeometry args={[0.8, 0.05, 0.35]} />
+        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={1.0} metalness={0.6} roughness={0.3} />
+      </mesh>
+      {/* Engine glow left */}
+      <mesh position={[-0.8, -0.1, 0]}>
+        <sphereGeometry args={[0.12, 8, 8]} />
+        <meshBasicMaterial color="#ffffff" />
+      </mesh>
+      {/* Engine glow right */}
+      <mesh position={[0.8, -0.1, 0]}>
+        <sphereGeometry args={[0.12, 8, 8]} />
+        <meshBasicMaterial color="#ffffff" />
+      </mesh>
+    </group>
+  );
+}
+
+// ─── Flying Airplane with Contrail ─────────────────────────
+function FlyingAirplane({ start, end, color, delay }: { start: THREE.Vector3; end: THREE.Vector3; color: string; delay: number }) {
   const groupRef = useRef<THREE.Group>(null);
-  const lineObjRef = useRef<THREE.Line | null>(null);
+  const trailGroupRef = useRef<THREE.Group>(null);
+  const trailLineRef = useRef<THREE.Line | null>(null);
+  const trailPoints = useRef<THREE.Vector3[]>([]);
+  const maxTrail = 40;
 
   const fullPoints = useMemo(() => {
     const pts: THREE.Vector3[] = [];
-    for (let i = 0; i <= 80; i++) {
-      const t = i / 80;
+    for (let i = 0; i <= 100; i++) {
+      const t = i / 100;
       const p = new THREE.Vector3().lerpVectors(start, end, t);
-      p.normalize().multiplyScalar(2 * (1 + 0.2 * Math.sin(Math.PI * t)));
+      p.normalize().multiplyScalar(2 * (1 + 0.25 * Math.sin(Math.PI * t)));
       pts.push(p);
     }
     return pts;
   }, [start, end]);
 
   useEffect(() => {
-    if (!groupRef.current) return;
+    if (!trailGroupRef.current) return;
     const geom = new THREE.BufferGeometry();
-    const mat = new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.8 });
+    const mat = new THREE.LineBasicMaterial({ color: "#ffffff", transparent: true, opacity: 0.3 });
     const line = new THREE.Line(geom, mat);
-    groupRef.current.add(line);
-    lineObjRef.current = line;
+    trailGroupRef.current.add(line);
+    trailLineRef.current = line;
     return () => {
-      groupRef.current?.remove(line);
+      trailGroupRef.current?.remove(line);
       geom.dispose();
       mat.dispose();
     };
-  }, [color]);
+  }, []);
 
   useFrame(({ clock }) => {
-    if (!lineObjRef.current) return;
+    if (!groupRef.current) return;
     const time = clock.getElapsedTime() - delay;
-    if (time < 0) return;
-    const progress = Math.min(1, (time % 4) / 2);
-    const count = Math.max(2, Math.floor(progress * fullPoints.length));
-    const positions = new Float32Array(count * 3);
-    for (let i = 0; i < count; i++) {
-      positions[i * 3] = fullPoints[i].x;
-      positions[i * 3 + 1] = fullPoints[i].y;
-      positions[i * 3 + 2] = fullPoints[i].z;
+    if (time < 0) { groupRef.current.visible = false; return; }
+
+    const cycle = (time % 6) / 4;
+    if (cycle > 1) {
+      groupRef.current.visible = false;
+      trailPoints.current = [];
+      return;
     }
-    lineObjRef.current.geometry.dispose();
-    const newGeom = new THREE.BufferGeometry();
-    newGeom.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-    lineObjRef.current.geometry = newGeom;
+
+    groupRef.current.visible = true;
+    const idx = Math.min(Math.floor(cycle * fullPoints.length), fullPoints.length - 1);
+    const nextIdx = Math.min(idx + 1, fullPoints.length - 1);
+    const pt = fullPoints[idx];
+    const next = fullPoints[nextIdx];
+
+    groupRef.current.position.copy(pt);
+
+    // Orient airplane along flight path
+    const direction = new THREE.Vector3().subVectors(next, pt).normalize();
+    const up = pt.clone().normalize();
+    const quaternion = new THREE.Quaternion();
+    const lookMat = new THREE.Matrix4().lookAt(new THREE.Vector3(), direction, up);
+    quaternion.setFromRotationMatrix(lookMat);
+    const adjust = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI / 2);
+    quaternion.multiply(adjust);
+    groupRef.current.quaternion.copy(quaternion);
+
+    // Banking
+    const bank = Math.sin(cycle * Math.PI * 2) * 0.2;
+    groupRef.current.rotateOnAxis(new THREE.Vector3(0, 1, 0), bank);
+
+    // Contrail
+    trailPoints.current.push(pt.clone());
+    if (trailPoints.current.length > maxTrail) trailPoints.current.shift();
+
+    if (trailLineRef.current && trailPoints.current.length >= 2) {
+      const geom = new THREE.BufferGeometry().setFromPoints(trailPoints.current);
+      trailLineRef.current.geometry.dispose();
+      trailLineRef.current.geometry = geom;
+    }
   });
 
-  return <group ref={groupRef} />;
+  return (
+    <>
+      <group ref={groupRef}>
+        <AirplaneModel color={color} />
+        <pointLight color={color} intensity={2} distance={0.5} />
+      </group>
+      <group ref={trailGroupRef} />
+    </>
+  );
 }
 
-// Airplane dot traveling along arc
-function AirplaneDot({ start, end, color, delay }: { start: THREE.Vector3; end: THREE.Vector3; color: string; delay: number }) {
+// ─── Glowing Arc Tube ──────────────────────────────────────
+function GlowingArc({ start, end, color, delay }: { start: THREE.Vector3; end: THREE.Vector3; color: string; delay: number }) {
   const meshRef = useRef<THREE.Mesh>(null);
-  const trailRef = useRef<THREE.Points>(null);
-  const trailPositions = useRef(new Float32Array(30 * 3));
 
-  const fullPoints = useMemo(() => {
+  const { tube, fullPoints } = useMemo(() => {
     const pts: THREE.Vector3[] = [];
     for (let i = 0; i <= 80; i++) {
       const t = i / 80;
@@ -126,67 +343,75 @@ function AirplaneDot({ start, end, color, delay }: { start: THREE.Vector3; end: 
       p.normalize().multiplyScalar(2 * (1 + 0.22 * Math.sin(Math.PI * t)));
       pts.push(p);
     }
-    return pts;
+    const curve = new THREE.CatmullRomCurve3(pts);
+    return { tube: new THREE.TubeGeometry(curve, 80, 0.008, 6, false), fullPoints: pts };
   }, [start, end]);
 
   useFrame(({ clock }) => {
     if (!meshRef.current) return;
+    const mat = meshRef.current.material as THREE.ShaderMaterial;
     const time = clock.getElapsedTime() - delay;
     if (time < 0) { meshRef.current.visible = false; return; }
     meshRef.current.visible = true;
-
-    const cycle = (time % 5) / 3;
-    if (cycle > 1) { meshRef.current.visible = false; return; }
-
-    const idx = Math.min(Math.floor(cycle * fullPoints.length), fullPoints.length - 1);
-    const pt = fullPoints[idx];
-    meshRef.current.position.copy(pt);
-
-    // Update trail
-    if (trailRef.current) {
-      const arr = trailPositions.current;
-      // Shift positions back
-      for (let i = arr.length - 3; i >= 3; i -= 3) {
-        arr[i] = arr[i - 3];
-        arr[i + 1] = arr[i - 2];
-        arr[i + 2] = arr[i - 1];
-      }
-      arr[0] = pt.x; arr[1] = pt.y; arr[2] = pt.z;
-      (trailRef.current.geometry.attributes.position as THREE.BufferAttribute).needsUpdate = true;
-    }
+    mat.uniforms.uProgress.value = Math.min(1, (time % 5) / 2.5);
   });
 
-  return (
-    <>
-      <mesh ref={meshRef}>
-        <sphereGeometry args={[0.03, 8, 8]} />
-        <meshBasicMaterial color={color} />
-      </mesh>
-      <points ref={trailRef}>
-        <bufferGeometry>
-          <bufferAttribute attach="attributes-position" args={[trailPositions.current, 3]} />
-        </bufferGeometry>
-        <pointsMaterial size={0.015} color={color} transparent opacity={0.4} sizeAttenuation />
-      </points>
-    </>
-  );
+  const mat = useMemo(() => new THREE.ShaderMaterial({
+    uniforms: {
+      uColor: { value: new THREE.Color(color) },
+      uProgress: { value: 0 },
+    },
+    vertexShader: `
+      attribute float arcProgress;
+      varying float vProgress;
+      void main() {
+        // Use UV.x as progress along tube
+        vProgress = uv.x;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `
+      uniform vec3 uColor;
+      uniform float uProgress;
+      varying float vProgress;
+      void main() {
+        if (vProgress > uProgress) discard;
+        float glow = 1.0 - smoothstep(0.0, 0.05, abs(vProgress - uProgress));
+        float base = 0.4 + glow * 0.6;
+        float alpha = base * smoothstep(0.0, 0.05, vProgress);
+        gl_FragColor = vec4(uColor * (1.0 + glow * 2.0), alpha);
+      }
+    `,
+    transparent: true,
+    side: THREE.DoubleSide,
+    depthWrite: false,
+  }), [color]);
+
+  return <mesh ref={meshRef} geometry={tube} material={mat} />;
 }
 
-// Pulsing marker
+// ─── Pulsing Marker ────────────────────────────────────────
 function Marker({ loc, isActive, onClick }: { loc: Location; isActive: boolean; onClick: () => void }) {
   const meshRef = useRef<THREE.Mesh>(null);
   const pulseRef = useRef<THREE.Mesh>(null);
+  const ringRef = useRef<THREE.Mesh>(null);
   const pos = useMemo(() => latLngToVec3(loc.lat, loc.lng, 2.01), [loc]);
   const isCareer = loc.type === "career";
   const size = isCareer ? 0.055 : 0.025;
 
   useFrame(({ clock }) => {
+    const t = clock.getElapsedTime();
     if (pulseRef.current && isCareer) {
-      const s = 1 + 0.3 * Math.sin(clock.getElapsedTime() * 2);
+      const s = 1 + 0.4 * Math.sin(t * 2);
       pulseRef.current.scale.setScalar(s);
     }
+    if (ringRef.current && isCareer) {
+      ringRef.current.rotation.z = t * 0.5;
+      const s = 1.2 + 0.2 * Math.sin(t * 1.5);
+      ringRef.current.scale.setScalar(s);
+    }
     if (meshRef.current) {
-      const hover = isActive ? 1.4 : 1;
+      const hover = isActive ? 1.5 : 1;
       meshRef.current.scale.lerp(new THREE.Vector3(hover, hover, hover), 0.1);
     }
   });
@@ -194,20 +419,26 @@ function Marker({ loc, isActive, onClick }: { loc: Location; isActive: boolean; 
   return (
     <group position={pos}>
       {isCareer && (
-        <mesh ref={pulseRef}>
-          <sphereGeometry args={[size * 3, 16, 16]} />
-          <meshBasicMaterial color={loc.color} transparent opacity={0.15} />
-        </mesh>
+        <>
+          <mesh ref={pulseRef}>
+            <sphereGeometry args={[size * 4, 16, 16]} />
+            <meshBasicMaterial color={loc.color} transparent opacity={0.08} />
+          </mesh>
+          <mesh ref={ringRef}>
+            <ringGeometry args={[size * 2.5, size * 3, 32]} />
+            <meshBasicMaterial color={loc.color} transparent opacity={0.2} side={THREE.DoubleSide} />
+          </mesh>
+        </>
       )}
       <mesh ref={meshRef} onClick={onClick}>
         <sphereGeometry args={[size, 16, 16]} />
-        <meshStandardMaterial color={loc.color} emissive={loc.color} emissiveIntensity={isActive ? 2 : 0.8} />
+        <meshStandardMaterial color={loc.color} emissive={loc.color} emissiveIntensity={isActive ? 3 : 1.2} toneMapped={false} />
       </mesh>
       {isCareer && isActive && (
-        <Html distanceFactor={8} position={[0, 0.15, 0]} center>
-          <div className="bg-black/80 backdrop-blur px-3 py-1.5 rounded-lg text-[11px] text-white whitespace-nowrap border border-white/10 pointer-events-none">
+        <Html distanceFactor={8} position={[0, 0.18, 0]} center>
+          <div className="bg-black/90 backdrop-blur-xl px-4 py-2 rounded-xl text-[11px] text-white whitespace-nowrap border border-white/10 pointer-events-none shadow-2xl">
             <span className="font-bold">{loc.name}</span>
-            {loc.year && <span className="text-white/50 ml-1.5">{loc.year}</span>}
+            {loc.year && <span className="text-white/40 ml-2">{loc.year}</span>}
           </div>
         </Html>
       )}
@@ -215,56 +446,67 @@ function Marker({ loc, isActive, onClick }: { loc: Location; isActive: boolean; 
   );
 }
 
-// Earth-like dots for continents
-function ContinentDots() {
-  const positions = useMemo(() => {
-    const pts: number[] = [];
-    const landRegions = [
-      { latMin: 10, latMax: 55, lngMin: -130, lngMax: -60 },
-      { latMin: -35, latMax: 10, lngMin: -80, lngMax: -35 },
-      { latMin: 35, latMax: 70, lngMin: -10, lngMax: 40 },
-      { latMin: -35, latMax: 35, lngMin: 10, lngMax: 55 },
-      { latMin: 5, latMax: 55, lngMin: 60, lngMax: 140 },
-      { latMin: -40, latMax: -10, lngMin: 115, lngMax: 155 },
-      { latMin: 5, latMax: 35, lngMin: 65, lngMax: 90 },
-    ];
-    for (let i = 0; i < 2000; i++) {
-      const region = landRegions[Math.floor(Math.random() * landRegions.length)];
-      const lat = region.latMin + Math.random() * (region.latMax - region.latMin);
-      const lng = region.lngMin + Math.random() * (region.lngMax - region.lngMin);
-      const v = latLngToVec3(lat + (Math.random() - 0.5) * 5, lng + (Math.random() - 0.5) * 5, 2.005);
-      pts.push(v.x, v.y, v.z);
+// ─── Stars with twinkling ──────────────────────────────────
+function Stars() {
+  const ref = useRef<THREE.Points>(null);
+  const { positions, sizes } = useMemo(() => {
+    const p = new Float32Array(800 * 3);
+    const s = new Float32Array(800);
+    for (let i = 0; i < 800; i++) {
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(2 * Math.random() - 1);
+      const r = 10 + Math.random() * 8;
+      p[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+      p[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+      p[i * 3 + 2] = r * Math.cos(phi);
+      s[i] = 0.01 + Math.random() * 0.03;
     }
-    return new Float32Array(pts);
+    return { positions: p, sizes: s };
   }, []);
 
+  useFrame(({ clock }) => {
+    if (ref.current) {
+      ref.current.rotation.y = clock.getElapsedTime() * 0.003;
+      // Twinkle via size attribute
+      const sAttr = ref.current.geometry.attributes.size as THREE.BufferAttribute;
+      const arr = sAttr.array as Float32Array;
+      const t = clock.getElapsedTime();
+      for (let i = 0; i < 800; i++) {
+        arr[i] = sizes[i] * (0.5 + 0.5 * Math.sin(t * (1 + i * 0.01) + i));
+      }
+      sAttr.needsUpdate = true;
+    }
+  });
+
   return (
-    <points>
+    <points ref={ref}>
       <bufferGeometry>
         <bufferAttribute attach="attributes-position" args={[positions, 3]} />
+        <bufferAttribute attach="attributes-size" args={[sizes, 1]} />
       </bufferGeometry>
-      <pointsMaterial size={0.008} color="#0EBBFF" transparent opacity={0.25} sizeAttenuation />
+      <pointsMaterial size={0.03} color="#ffffff" transparent opacity={0.7} sizeAttenuation vertexColors={false} />
     </points>
   );
 }
 
-function Stars() {
+// ─── Nebula dust ring ──────────────────────────────────────
+function NebulaRing() {
   const ref = useRef<THREE.Points>(null);
   const positions = useMemo(() => {
-    const p = new Float32Array(500 * 3);
-    for (let i = 0; i < 500; i++) {
-      const theta = Math.random() * Math.PI * 2;
-      const phi = Math.acos(2 * Math.random() - 1);
-      const r = 8 + Math.random() * 5;
-      p[i * 3] = r * Math.sin(phi) * Math.cos(theta);
-      p[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
-      p[i * 3 + 2] = r * Math.cos(phi);
+    const p = new Float32Array(300 * 3);
+    for (let i = 0; i < 300; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const r = 3.5 + Math.random() * 1.5;
+      const y = (Math.random() - 0.5) * 0.3;
+      p[i * 3] = Math.cos(angle) * r;
+      p[i * 3 + 1] = y;
+      p[i * 3 + 2] = Math.sin(angle) * r;
     }
     return p;
   }, []);
 
   useFrame(({ clock }) => {
-    if (ref.current) ref.current.rotation.y = clock.getElapsedTime() * 0.005;
+    if (ref.current) ref.current.rotation.y = clock.getElapsedTime() * 0.01;
   });
 
   return (
@@ -272,35 +514,18 @@ function Stars() {
       <bufferGeometry>
         <bufferAttribute attach="attributes-position" args={[positions, 3]} />
       </bufferGeometry>
-      <pointsMaterial size={0.02} color="#ffffff" transparent opacity={0.5} sizeAttenuation />
+      <pointsMaterial size={0.015} color="#a855f7" transparent opacity={0.15} sizeAttenuation />
     </points>
   );
 }
 
-function GridLines() {
-  const groupRef = useRef<THREE.Group>(null);
-  useEffect(() => {
-    if (!groupRef.current) return;
-    const mat = new THREE.LineBasicMaterial({ color: "#0EBBFF", transparent: true, opacity: 0.04 });
-    for (let lat = -60; lat <= 60; lat += 30) {
-      const pts: THREE.Vector3[] = [];
-      for (let lng = 0; lng <= 360; lng += 3) pts.push(latLngToVec3(lat, lng, 2.008));
-      const geom = new THREE.BufferGeometry().setFromPoints(pts);
-      groupRef.current.add(new THREE.Line(geom, mat));
-    }
-    return () => { mat.dispose(); };
-  }, []);
-  return <group ref={groupRef} />;
-}
-
-// Camera controller for auto-tour
+// ─── Camera Controller ─────────────────────────────────────
 function CameraController({ target, isTouring }: { target: THREE.Vector3 | null; isTouring: boolean }) {
   const { camera } = useThree();
   const targetPos = useRef(new THREE.Vector3(0, 1.5, 5));
 
   useFrame(() => {
     if (!isTouring || !target) return;
-    // Position camera looking at the target location from outside
     const dir = target.clone().normalize();
     const camPos = dir.multiplyScalar(5).add(new THREE.Vector3(0, 1, 0));
     targetPos.current.lerp(camPos, 0.02);
@@ -311,7 +536,47 @@ function CameraController({ target, isTouring }: { target: THREE.Vector3 | null;
   return null;
 }
 
-function Globe({ activeIndex, onMarkerClick, selectedLoc, onLocSelect, isTouring }: {
+// ─── Earth Globe ───────────────────────────────────────────
+function EarthGlobe() {
+  const meshRef = useRef<THREE.Mesh>(null);
+  useFrame(({ clock }) => {
+    if (meshRef.current) {
+      const mat = meshRef.current.material as THREE.ShaderMaterial & { uniforms: { uTime: { value: number } } };
+      if (mat.uniforms?.uTime) mat.uniforms.uTime.value = clock.getElapsedTime();
+    }
+  });
+
+  return (
+    <mesh ref={meshRef}>
+      <sphereGeometry args={[2, 128, 64]} />
+      {/* @ts-ignore */}
+      <earthMaterial />
+    </mesh>
+  );
+}
+
+// ─── Cloud Layer ───────────────────────────────────────────
+function CloudLayer() {
+  const meshRef = useRef<THREE.Mesh>(null);
+  useFrame(({ clock }) => {
+    if (meshRef.current) {
+      meshRef.current.rotation.y = clock.getElapsedTime() * 0.006;
+      const mat = meshRef.current.material as THREE.ShaderMaterial & { uniforms: { uTime: { value: number } } };
+      if (mat.uniforms?.uTime) mat.uniforms.uTime.value = clock.getElapsedTime();
+    }
+  });
+
+  return (
+    <mesh ref={meshRef}>
+      <sphereGeometry args={[2.04, 64, 32]} />
+      {/* @ts-ignore */}
+      <cloudMaterial transparent depthWrite={false} side={THREE.FrontSide} />
+    </mesh>
+  );
+}
+
+// ─── Main Globe Scene ──────────────────────────────────────
+function GlobeScene({ activeIndex, onMarkerClick, selectedLoc, onLocSelect, isTouring }: {
   activeIndex: number;
   onMarkerClick: (i: number) => void;
   selectedLoc: Location | null;
@@ -323,7 +588,7 @@ function Globe({ activeIndex, onMarkerClick, selectedLoc, onLocSelect, isTouring
 
   useFrame(() => {
     if (globeRef.current && !isTouring) {
-      globeRef.current.rotation.y += 0.001;
+      globeRef.current.rotation.y += 0.0008;
     }
   });
 
@@ -349,24 +614,23 @@ function Globe({ activeIndex, onMarkerClick, selectedLoc, onLocSelect, isTouring
     <>
       <CameraController target={tourTarget} isTouring={isTouring} />
       <group ref={globeRef}>
-        <Sphere args={[2, 64, 64]}>
-          <meshStandardMaterial color="#0a0a1a" roughness={1} metalness={0} />
-        </Sphere>
-        <Sphere args={[2.15, 64, 64]}>
-          <meshStandardMaterial color="#0EBBFF" transparent opacity={0.03} side={THREE.BackSide} />
-        </Sphere>
-        <Sphere args={[2.25, 64, 64]}>
-          <meshStandardMaterial color="#0EBBFF" transparent opacity={0.015} side={THREE.BackSide} />
-        </Sphere>
-        <ContinentDots />
-        <GridLines />
+        {/* Realistic Earth */}
+        <EarthGlobe />
+        <CloudLayer />
+
+
+        {/* Glowing arcs */}
         {arcs.map((arc, i) => (
-          <AnimatedArc key={`arc-${i}`} start={arc.start} end={arc.end} color={arc.color} delay={i * 1.5} />
+          <GlowingArc key={`arc-${i}`} start={arc.start} end={arc.end} color={arc.color} delay={i * 1.5} />
         ))}
+
+        {/* Flying airplanes */}
         {arcs.map((arc, i) => (
-          <AirplaneDot key={`plane-${i}`} start={arc.start} end={arc.end} color={arc.color} delay={i * 1.5 + 0.5} />
+          <FlyingAirplane key={`plane-${i}`} start={arc.start} end={arc.end} color={arc.color} delay={i * 1.5 + 0.5} />
         ))}
-        {locations.map((loc, i) => {
+
+        {/* Location markers */}
+        {locations.map((loc) => {
           const careerIdx = careerLocs.indexOf(loc);
           return (
             <Marker
@@ -385,7 +649,7 @@ function Globe({ activeIndex, onMarkerClick, selectedLoc, onLocSelect, isTouring
   );
 }
 
-// Passport stamp component
+// ─── UI Components ─────────────────────────────────────────
 function PassportStamp({ loc, index, isVisible }: { loc: Location; index: number; isVisible: boolean }) {
   return (
     <motion.div
@@ -400,7 +664,6 @@ function PassportStamp({ loc, index, isVisible }: { loc: Location; index: number
       {loc.blurb && (
         <span className="text-[7px] text-purple-400/60 text-center px-1 leading-tight">{loc.blurb}</span>
       )}
-      {/* Stamp overlay effect */}
       <div className="absolute inset-0 rounded-lg border border-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity" style={{
         background: "repeating-linear-gradient(45deg, transparent, transparent 3px, rgba(168,85,247,0.03) 3px, rgba(168,85,247,0.03) 6px)"
       }} />
@@ -408,7 +671,6 @@ function PassportStamp({ loc, index, isVisible }: { loc: Location; index: number
   );
 }
 
-// Photo card popup
 function PhotoCard({ loc, onClose }: { loc: Location; onClose: () => void }) {
   return (
     <motion.div
@@ -445,98 +707,8 @@ function PhotoCard({ loc, onClose }: { loc: Location; onClose: () => void }) {
   );
 }
 
-// Timeline scrubber
-function TimelineScrubber({ activeIndex, onIndexChange, careerLocs, isTouring }: {
-  activeIndex: number;
-  onIndexChange: (i: number) => void;
-  careerLocs: Location[];
-  isTouring: boolean;
-}) {
-  const trackRef = useRef<HTMLDivElement>(null);
-  const [dragging, setDragging] = useState(false);
 
-  const handleInteraction = useCallback((clientX: number) => {
-    if (!trackRef.current) return;
-    const rect = trackRef.current.getBoundingClientRect();
-    const pct = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
-    const idx = Math.round(pct * (careerLocs.length - 1));
-    onIndexChange(idx);
-  }, [careerLocs.length, onIndexChange]);
-
-  const handleMouseDown = (e: React.MouseEvent) => { setDragging(true); handleInteraction(e.clientX); };
-  const handleMouseMove = (e: React.MouseEvent) => { if (dragging) handleInteraction(e.clientX); };
-  const handleMouseUp = () => setDragging(false);
-
-  const progress = careerLocs.length > 1 ? activeIndex / (careerLocs.length - 1) : 0;
-
-  return (
-    <div className="px-6 md:px-8 py-3" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
-      <div className="flex items-center gap-4">
-        <span className="text-[10px] text-gray-600 font-mono shrink-0">2016</span>
-        <div
-          ref={trackRef}
-          className="flex-1 relative h-8 flex items-center cursor-pointer"
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseUp}
-        >
-          {/* Track */}
-          <div className="absolute inset-y-3 left-0 right-0 rounded-full bg-gray-800">
-            <motion.div
-              className="h-full rounded-full"
-              style={{ background: `linear-gradient(90deg, #f59e0b, #ef4444, #0EBBFF)` }}
-              animate={{ width: `${progress * 100}%` }}
-              transition={{ duration: isTouring ? 0.8 : 0.2 }}
-            />
-          </div>
-          {/* Stops */}
-          {careerLocs.map((loc, i) => {
-            const pct = careerLocs.length > 1 ? (i / (careerLocs.length - 1)) * 100 : 0;
-            return (
-              <div
-                key={loc.name}
-                className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 z-10"
-                style={{ left: `${pct}%` }}
-              >
-                <motion.div
-                  className="w-4 h-4 rounded-full border-2 cursor-pointer"
-                  style={{
-                    background: i <= activeIndex ? loc.color : "#1a1a2e",
-                    borderColor: loc.color,
-                    boxShadow: i === activeIndex ? `0 0 12px ${loc.color}` : "none"
-                  }}
-                  whileHover={{ scale: 1.3 }}
-                  onClick={() => onIndexChange(i)}
-                />
-              </div>
-            );
-          })}
-          {/* Thumb */}
-          <motion.div
-            className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-6 h-6 rounded-full border-2 border-white shadow-lg z-20"
-            style={{ background: careerLocs[activeIndex]?.color || "#0EBBFF" }}
-            animate={{ left: `${progress * 100}%` }}
-            transition={{ duration: isTouring ? 0.8 : 0.15 }}
-          />
-        </div>
-        <span className="text-[10px] text-gray-600 font-mono shrink-0">Now</span>
-      </div>
-      {/* Active location label */}
-      <motion.div
-        key={activeIndex}
-        initial={{ opacity: 0, y: 5 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-center mt-1"
-      >
-        <span className="text-xs font-mono" style={{ color: careerLocs[activeIndex]?.color }}>{careerLocs[activeIndex]?.year}</span>
-        <span className="text-gray-600 mx-2">·</span>
-        <span className="text-sm font-semibold text-white">{careerLocs[activeIndex]?.description}</span>
-      </motion.div>
-    </div>
-  );
-}
-
+// ─── Main Export ───────────────────────────────────────────
 export function CareerJourney() {
   const [activeIndex, setActiveIndex] = useState(2);
   const [selectedLoc, setSelectedLoc] = useState<Location | null>(null);
@@ -550,7 +722,6 @@ export function CareerJourney() {
   const intlTravel = locations.filter(l => l.type === "travel-intl");
   const totalPlaces = locations.length;
 
-  // Stamp visibility on scroll
   useEffect(() => {
     const observer = new IntersectionObserver(([entry]) => {
       if (entry.isIntersecting) setStampsVisible(true);
@@ -559,7 +730,6 @@ export function CareerJourney() {
     return () => observer.disconnect();
   }, []);
 
-  // Auto-tour
   const startTour = useCallback(() => {
     setIsTouring(true);
     setActiveIndex(0);
@@ -570,22 +740,18 @@ export function CareerJourney() {
       step++;
       if (step >= careerLocs.length) {
         clearInterval(interval);
-        setTimeout(() => {
-          setIsTouring(false);
-          setTourText("");
-        }, 2000);
+        setTimeout(() => { setIsTouring(false); setTourText(""); }, 2000);
         return;
       }
       setActiveIndex(step);
       setTourText(careerLocs[step].blurb || careerLocs[step].description || "");
     }, 3500);
-
     return () => clearInterval(interval);
   }, [careerLocs]);
 
   return (
     <div className="rounded-3xl overflow-hidden relative" style={{ background: "#050510", border: "1px solid rgba(14,187,255,0.1)" }}>
-      {/* Header stats */}
+      {/* Header */}
       <div className="flex items-center justify-between px-6 md:px-8 pt-6">
         <div className="flex items-center gap-3">
           <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
@@ -605,7 +771,7 @@ export function CareerJourney() {
         </div>
       </div>
 
-      {/* Tour narration overlay */}
+      {/* Tour narration */}
       <AnimatePresence>
         {isTouring && tourText && (
           <motion.div
@@ -615,12 +781,7 @@ export function CareerJourney() {
             className="absolute top-16 left-1/2 -translate-x-1/2 z-30 px-6 py-3 rounded-xl border border-white/10 max-w-sm text-center"
             style={{ background: "rgba(10,10,30,0.9)", backdropFilter: "blur(20px)" }}
           >
-            <motion.p
-              key={tourText}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="text-sm text-white font-medium"
-            >
+            <motion.p key={tourText} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-sm text-white font-medium">
               {tourText}
             </motion.p>
             <div className="flex justify-center gap-1.5 mt-2">
@@ -632,7 +793,7 @@ export function CareerJourney() {
         )}
       </AnimatePresence>
 
-      {/* Photo card popup */}
+      {/* Photo card */}
       <AnimatePresence>
         {selectedLoc && !isTouring && (
           <PhotoCard loc={selectedLoc} onClose={() => setSelectedLoc(null)} />
@@ -640,15 +801,16 @@ export function CareerJourney() {
       </AnimatePresence>
 
       {/* 3D Globe */}
-      <div className="h-[480px] md:h-[580px] relative cursor-grab active:cursor-grabbing">
-        <Canvas camera={{ position: [0, 1.5, 5], fov: 42 }} dpr={[1, 2]} frameloop="always">
+      <div className="h-[500px] md:h-[600px] relative cursor-grab active:cursor-grabbing">
+        <Canvas camera={{ position: [0, 1.5, 5], fov: 42 }} dpr={[1, 2]} frameloop="always" gl={{ antialias: true, alpha: true }}>
           <Suspense fallback={null}>
-            <ambientLight intensity={0.2} />
-            <directionalLight position={[5, 3, 5]} intensity={0.4} color="#ffffff" />
-            <pointLight position={[-5, -3, -5]} intensity={0.2} color="#a855f7" />
-            <pointLight position={[3, 2, -3]} intensity={0.3} color="#0EBBFF" />
+            <ambientLight intensity={0.15} />
+            <directionalLight position={[5, 3, 5]} intensity={0.6} color="#ffffff" />
+            <pointLight position={[-5, -3, -5]} intensity={0.3} color="#a855f7" />
+            <pointLight position={[3, 2, -3]} intensity={0.4} color="#0EBBFF" />
             <Stars />
-            <Globe
+            <NebulaRing />
+            <GlobeScene
               activeIndex={activeIndex}
               onMarkerClick={setActiveIndex}
               selectedLoc={selectedLoc}
@@ -671,26 +833,15 @@ export function CareerJourney() {
         </Canvas>
         {!isTouring && (
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-[10px] text-gray-600 flex items-center gap-2">
-            <span>Drag to rotate</span>
-            <span className="w-1 h-1 rounded-full bg-gray-700" />
-            <span>Scroll to zoom</span>
-            <span className="w-1 h-1 rounded-full bg-gray-700" />
+            <span>Drag to rotate</span><span className="w-1 h-1 rounded-full bg-gray-700" />
+            <span>Scroll to zoom</span><span className="w-1 h-1 rounded-full bg-gray-700" />
             <span>Click markers</span>
           </div>
         )}
       </div>
 
-      {/* Timeline scrubber */}
-      <TimelineScrubber
-        activeIndex={activeIndex}
-        onIndexChange={setActiveIndex}
-        careerLocs={careerLocs}
-        isTouring={isTouring}
-      />
-
       {/* Info panel */}
       <div className="px-6 md:px-8 pb-6 pt-2" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
-        {/* US states */}
         <div className="flex items-center gap-1.5 mb-4 overflow-x-auto pb-1">
           <span className="text-[10px] uppercase tracking-wider text-gray-600 shrink-0 mr-1">US ({usTravel.length})</span>
           {usTravel.map((loc) => (
@@ -708,7 +859,6 @@ export function CareerJourney() {
           ))}
         </div>
 
-        {/* International — Passport stamps */}
         <div ref={stampsRef}>
           <div className="flex items-center gap-1.5 mb-2">
             <span className="text-[10px] uppercase tracking-wider text-gray-600 shrink-0">Passport</span>
