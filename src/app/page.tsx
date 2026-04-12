@@ -150,9 +150,9 @@ export default function Home() {
 
             {/* Stats row — 4 cards with animated counters */}
             {stats.map((stat, i) => (
-              <BentoCard key={stat.label} className="col-span-1 md:col-span-3 row-span-1 p-4 md:p-6 flex flex-col justify-center" delay={0.2 + i * 0.05}>
-                <AnimatedCounter target={stat.value} className="text-2xl md:text-3xl font-bold text-accent" />
-                <div className="text-[10px] md:text-xs text-text-secondary uppercase tracking-wider mt-1">{stat.label}</div>
+              <BentoCard key={stat.label} className="col-span-1 md:col-span-3 row-span-1 p-4 md:p-6 flex items-center justify-center" delay={0.2 + i * 0.05}>
+                <AnimatedCounter target={stat.value} />
+                <div className="text-[10px] md:text-xs text-text-secondary uppercase tracking-wider mt-0.5 text-center">{stat.label}</div>
               </BentoCard>
             ))}
 
