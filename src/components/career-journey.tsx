@@ -47,6 +47,8 @@ const locations: Location[] = [
   { name: "Turkey", lat: 41.01, lng: 28.98, type: "travel-intl", color: "#a855f7" },
   { name: "Belgium", lat: 50.85, lng: 4.35, type: "travel-intl", color: "#a855f7" },
   { name: "Netherlands", lat: 52.37, lng: 4.90, type: "travel-intl", color: "#a855f7" },
+  { name: "UK", lat: 51.51, lng: -0.13, type: "travel-intl", color: "#a855f7" },
+  { name: "Iceland", lat: 64.13, lng: -21.90, type: "travel-intl", color: "#a855f7" },
 ];
 
 function latLngToVec3(lat: number, lng: number, r: number): THREE.Vector3 {

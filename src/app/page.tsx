@@ -300,7 +300,7 @@ export default function Home() {
       <ParallaxPhoto
         src="/tanmay-portfolio/images/lifestyle/tahoe.jpg"
         alt="Tanmay at Lake Tahoe"
-        caption="29 places and counting"
+        caption="30 places and counting"
         subcaption="Always exploring"
         height="40vh"
         overlay="dark"

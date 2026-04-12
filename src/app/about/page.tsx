@@ -205,7 +205,7 @@ export default function About() {
             { emoji: "⚽", title: "Soccer", text: "Weekend warrior on the pitch", color: "from-green-500/20 via-green-600/5 to-transparent", span: "col-span-1" },
             { emoji: "🤖", title: "AI × Domain Knowledge", text: "AI is my dev team — I bring the manufacturing judgment no model has", color: "from-violet-500/20 via-violet-600/5 to-transparent", span: "col-span-1" },
             { emoji: "📊", title: "The Books Stop Here", text: "Our accountants escalate to me when things don't balance", color: "from-emerald-500/20 via-emerald-600/5 to-transparent", span: "col-span-1" },
-            { emoji: "🌍", title: "29 Places & Counting", text: "Monument Valley, Hawaii, Northern Lights, France, Singapore, Turkey...", color: "from-blue-500/20 via-blue-600/5 to-transparent", span: "col-span-2" },
+            { emoji: "🌍", title: "30 Places & Counting", text: "Monument Valley, Hawaii, Northern Lights, Iceland, UK, France, Singapore, Turkey...", color: "from-blue-500/20 via-blue-600/5 to-transparent", span: "col-span-2" },
             { emoji: "📈", title: "Market Watcher", text: "Following patterns, building financial literacy, studying the game", color: "from-amber-500/20 via-amber-600/5 to-transparent", span: "col-span-1" },
             { emoji: "📖", title: "Philosophy & Mental Models", text: "How to think about thinking — systems within systems", color: "from-rose-500/20 via-rose-600/5 to-transparent", span: "col-span-1" },
             { emoji: "🎯", title: "The Vision", text: "Build systems so good that businesses run themselves", color: "from-cyan-500/20 via-purple-600/5 to-transparent", span: "col-span-2" },
