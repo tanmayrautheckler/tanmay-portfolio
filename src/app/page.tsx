@@ -296,6 +296,34 @@ export default function Home() {
         </section>
       </Container>
 
+      {/* ═══ CASE STUDIES TEASER ═══ */}
+      <Container>
+        <section className="py-10 md:py-14">
+          <Link
+            href="/case-studies"
+            className="group block border-y border-border hover:border-foreground/30 transition-colors"
+          >
+            <div className="grid grid-cols-[auto_1fr_auto] gap-6 md:gap-10 items-baseline py-8 md:py-12">
+              <span className="font-mono text-[10px] md:text-xs uppercase tracking-[0.25em] text-accent">
+                Case Studies
+              </span>
+              <div>
+                <h3 className="text-xl md:text-3xl font-bold tracking-tight text-foreground leading-tight">
+                  Long-form deep dives on ERP projects I&apos;ve led.
+                </h3>
+                <p className="mt-2 text-sm md:text-base text-text-secondary">
+                  Odoo 16→17 · 65-hour zero-loss cutover · Two more coming.
+                </p>
+              </div>
+              <span className="inline-flex items-center gap-1.5 text-xs md:text-sm font-mono uppercase tracking-[0.2em] text-foreground group-hover:gap-2.5 transition-all">
+                Read
+                <ArrowRight className="w-3.5 h-3.5" />
+              </span>
+            </div>
+          </Link>
+        </section>
+      </Container>
+
       {/* ═══ PARALLAX BREAK — TAHOE ═══ */}
       <ParallaxPhoto
         src="/tanmay-portfolio/images/lifestyle/tahoe.jpg"

@@ -487,3 +487,37 @@ html { scroll-behavior: smooth; }
   );
   opacity: 0.15;
 }
+
+/* ═══════════════════════════════════════════════════════════
+   CASE STUDY SERIF PROSE
+   ═══════════════════════════════════════════════════════════ */
+.serif-prose {
+  font-family: var(--font-serif), Georgia, "Times New Roman", serif;
+  font-feature-settings: "kern" 1, "liga" 1, "onum" 1;
+  letter-spacing: -0.005em;
+}
+.serif-prose p {
+  line-height: 1.7;
+}
+.serif-display {
+  font-family: var(--font-serif), Georgia, serif;
+  font-feature-settings: "kern" 1, "liga" 1, "ss01" 1;
+  letter-spacing: -0.02em;
+}
+
+/* Subtle tracing line animation used by case study risk-map + timeline */
+@keyframes cs-draw-line {
+  from { stroke-dashoffset: var(--dash-length, 1000); }
+  to   { stroke-dashoffset: 0; }
+}
+.cs-draw-line {
+  stroke-dasharray: var(--dash-length, 1000);
+  stroke-dashoffset: var(--dash-length, 1000);
+  animation: cs-draw-line 1.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .cs-draw-line {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+}
