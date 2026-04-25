@@ -23,7 +23,7 @@ const HeroScene = dynamic(() => import("@/components/hero-scene").then(mod => ({
 const featuredProjects = projects.filter((p) => p.featured);
 
 const stats = [
-  { value: "18+", label: "Systems Designed" },
+  { value: "20+", label: "Systems Designed" },
   { value: "1", label: "ERP Owner" },
   { value: "3+", label: "Years in ERP" },
   { value: "8", label: "Depts Managed" },
@@ -102,7 +102,7 @@ export default function Home() {
               ref={heroRef}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: false, margin: "-50px" }}
+              viewport={{ once: true, margin: "-50px" }}
               transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
               className="col-span-4 md:col-span-8 row-span-3 relative rounded-3xl overflow-hidden p-8 md:p-12 flex flex-col justify-end"
               style={{ background: "#0a0a0f", border: "1px solid #1d1d1f" }}
@@ -288,7 +288,7 @@ export default function Home() {
             {/* View all link card */}
             <BentoCard className="col-span-4 md:col-span-12 row-span-1 p-6 flex items-center justify-center" delay={0.4}>
               <Link href="/projects" className="link-arrow text-sm text-accent hover:text-accent-hover transition-colors">
-                View all 18 projects <ArrowRight className="w-4 h-4" />
+                View all {projects.length} projects <ArrowRight className="w-4 h-4" />
               </Link>
             </BentoCard>
 
