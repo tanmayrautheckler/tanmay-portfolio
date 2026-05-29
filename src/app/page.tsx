@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useRef, useState } from "react";
-import { ArrowRight, ArrowUpRight, Briefcase, Plane, Trophy, TrendingUp, Lightbulb, BookOpen, Layers, Crown, Calendar, Building2 } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Briefcase, Plane, Trophy, TrendingUp, Lightbulb, BookOpen, Layers, Crown, Calendar, Building2, FlaskConical } from "lucide-react";
 import { InstagramIcon } from "@/components/social-icons";
 import { TechLogos } from "@/components/tech-logos";
 import { AnimatedCounter } from "@/components/animated-counter";
@@ -308,6 +308,35 @@ export default function Home() {
               </div>
               <span className="inline-flex items-center gap-1.5 text-xs md:text-sm font-mono uppercase tracking-[0.2em] text-foreground group-hover:gap-2.5 transition-all">
                 Read
+                <ArrowRight className="w-3.5 h-3.5" />
+              </span>
+            </div>
+          </Link>
+        </section>
+      </Container>
+
+      {/* ═══ LABS TEASER ═══ */}
+      <Container>
+        <section className="py-0 md:py-0">
+          <Link
+            href="/labs"
+            className="group block border-b border-border hover:border-foreground/30 transition-colors"
+          >
+            <div className="grid grid-cols-[auto_1fr_auto] gap-6 md:gap-10 items-baseline py-8 md:py-12">
+              <span className="font-mono text-[10px] md:text-xs uppercase tracking-[0.25em] text-accent flex items-center gap-1.5">
+                <FlaskConical className="w-3 h-3" />
+                Labs
+              </span>
+              <div>
+                <h3 className="text-xl md:text-3xl font-bold tracking-tight text-foreground leading-tight">
+                  Live interactive demos — running in browser.
+                </h3>
+                <p className="mt-2 text-sm md:text-base text-text-secondary">
+                  Real tools built from production data · Sanitized · Fully explorable.
+                </p>
+              </div>
+              <span className="inline-flex items-center gap-1.5 text-xs md:text-sm font-mono uppercase tracking-[0.2em] text-foreground group-hover:gap-2.5 transition-all">
+                Explore
                 <ArrowRight className="w-3.5 h-3.5" />
               </span>
             </div>

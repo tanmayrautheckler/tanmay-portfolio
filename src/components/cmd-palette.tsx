@@ -31,6 +31,7 @@ import {
   Mountain,
   Sparkles,
   ExternalLink,
+  FlaskConical,
 } from "lucide-react";
 import { LinkedinIcon, GithubIcon } from "@/components/social-icons";
 import { projects } from "@/data/projects";
@@ -143,6 +144,7 @@ export function CommandPalette() {
                   <Item icon={<FolderKanban className="w-4 h-4" />} onSelect={() => go("/projects")} value="projects">Projects</Item>
                   <Item icon={<Wrench className="w-4 h-4" />} onSelect={() => go("/skills")} value="skills">Skills</Item>
                   <Item icon={<BookOpen className="w-4 h-4" />} onSelect={() => go("/case-studies")} value="case studies cases">Case Studies</Item>
+                  <Item icon={<FlaskConical className="w-4 h-4" />} onSelect={() => go("/labs")} value="labs demos interactive live">Labs</Item>
                   <Item icon={<Mail className="w-4 h-4" />} onSelect={() => go("/contact")} value="contact">Contact</Item>
                 </Command.Group>
 
