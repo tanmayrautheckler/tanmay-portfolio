@@ -12,6 +12,7 @@ import { ParallaxPhoto } from "@/components/parallax-photo";
 import { VideoSection } from "@/components/video-section";
 import { TextReveal, SlideIn, ScaleReveal, MagneticCard, GradientBlob } from "@/components/scroll-animations";
 import { EditorialHero } from "@/components/editorial-hero";
+import { HeroProjectCard } from "@/components/projects/hero-project-card";
 import { projects } from "@/data/projects";
 
 const MountainJourney = dynamic(
@@ -213,77 +214,45 @@ export default function Home() {
         overlay="gradient"
       />
 
-      {/* ═══ FEATURED PROJECTS BENTO ═══ */}
+      {/* ═══ FEATURED PROJECTS ═══ */}
       <Container>
-        <section className="py-4">
-          <div className="grid grid-cols-4 md:grid-cols-12 gap-3 auto-rows-[140px]">
+        <section className="pt-4 pb-2">
+          {/* Section header — standalone bento, not height-constrained by auto-rows grid */}
+          <BentoCard className="p-8 md:p-12 flex flex-col justify-end grid-bg relative overflow-hidden mb-10" delay={0}>
+            <GradientBlob className="w-[500px] h-[300px] -top-20 right-0 opacity-20" />
+            <div className="relative z-10">
+              <TextReveal>
+                <p className="text-accent text-xs font-mono tracking-[0.25em] uppercase mb-3 flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-accent pulse-dot" />
+                  Selected Work
+                </p>
+              </TextReveal>
+              <TextReveal>
+                <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-3">
+                  Featured Projects.
+                </h2>
+              </TextReveal>
+              <SlideIn direction="left" delay={0.2}>
+                <p className="text-text-secondary max-w-lg">
+                  Real systems solving real business problems — from native Odoo modules to full-stack portals to AI connectors.
+                </p>
+              </SlideIn>
+            </div>
+          </BentoCard>
 
-            {/* Section header */}
-            <BentoCard className="col-span-4 md:col-span-12 row-span-2 p-8 md:p-12 flex flex-col justify-end grid-bg relative overflow-hidden" delay={0}>
-              <GradientBlob className="w-[500px] h-[300px] -top-20 right-0 opacity-20" />
-              <div className="relative z-10">
-                <TextReveal>
-                  <p className="text-accent text-xs font-mono tracking-[0.25em] uppercase mb-3 flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-accent pulse-dot" />
-                    Selected Work
-                  </p>
-                </TextReveal>
-                <TextReveal>
-                  <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-3">
-                    Featured Projects.
-                  </h2>
-                </TextReveal>
-                <SlideIn direction="left" delay={0.2}>
-                  <p className="text-text-secondary max-w-lg">
-                    Real systems solving real business problems — from native Odoo modules to full-stack portals to AI connectors.
-                  </p>
-                </SlideIn>
-              </div>
-            </BentoCard>
-
-            {/* Project cards */}
-            {featuredProjects.map((project, i) => {
-              const colors: Record<string, string> = {
-                "AI & Automation": "from-cyan-500/15 to-blue-600/5",
-                "Manufacturing": "from-orange-500/15 to-amber-600/5",
-              };
-              const gradient = colors[project.category] || "from-accent/10 to-transparent";
-
-              return (
-                <BentoCard
-                  key={project.slug}
-                  className={`col-span-4 md:col-span-4 row-span-3 p-6 md:p-8 flex flex-col justify-between bg-gradient-to-br ${gradient}`}
-                  delay={0.1 + i * 0.1}
-                >
-                  <div>
-                    <span className="inline-block px-2.5 py-1 text-[10px] font-medium tracking-wide uppercase rounded-full border border-border bg-surface/50 backdrop-blur text-text-secondary mb-4">
-                      {project.category}
-                    </span>
-                    <h3 className="text-xl font-bold mb-2">{project.title}</h3>
-                    <p className="text-sm text-text-secondary leading-relaxed line-clamp-3">{project.description}</p>
-                  </div>
-                  <div className="mt-4">
-                    <div className="flex flex-wrap gap-1.5 mb-4">
-                      {project.tech.slice(0, 3).map((t) => (
-                        <span key={t} className="px-2 py-0.5 text-[10px] rounded-md border border-border text-text-secondary">{t}</span>
-                      ))}
-                    </div>
-                    <Link href={`/projects/${project.slug}`} className="link-arrow text-sm text-accent hover:text-accent-hover transition-colors">
-                      View project <ArrowRight className="w-4 h-4" />
-                    </Link>
-                  </div>
-                </BentoCard>
-              );
-            })}
-
-            {/* View all link card */}
-            <BentoCard className="col-span-4 md:col-span-12 row-span-1 p-6 flex items-center justify-center" delay={0.4}>
-              <Link href="/projects" className="link-arrow text-sm text-accent hover:text-accent-hover transition-colors">
-                View all {projects.length} projects <ArrowRight className="w-4 h-4" />
-              </Link>
-            </BentoCard>
-
+          {/* Sticky stacking cards — flex column, overflow visible so cards layer */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "52px", overflow: "visible", paddingBottom: "80px" }}>
+            {featuredProjects.map((project, i) => (
+              <HeroProjectCard key={project.slug} project={project} index={i} />
+            ))}
           </div>
+
+          {/* View all */}
+          <BentoCard className="p-6 flex items-center justify-center" delay={0.4}>
+            <Link href="/projects" className="link-arrow text-sm text-accent hover:text-accent-hover transition-colors">
+              View all {projects.length} projects <ArrowRight className="w-4 h-4" />
+            </Link>
+          </BentoCard>
         </section>
       </Container>
 

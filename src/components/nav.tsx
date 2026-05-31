@@ -91,6 +91,11 @@ export function Nav() {
               aria-expanded={open}
             >
               <span>Menu</span>
+              {pathname !== "/" && (
+                <span className="text-accent font-mono text-[11px] opacity-80">
+                  · {links.find((l) => l.href === pathname)?.label ?? "…"}
+                </span>
+              )}
               <motion.span
                 animate={{ rotate: open ? 180 : 0 }}
                 transition={{ duration: 0.25 }}

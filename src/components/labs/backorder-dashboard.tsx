@@ -12,6 +12,16 @@
  */
 
 import { useEffect, useRef, useState, useMemo } from "react";
+import {
+  Chart,
+  CategoryScale, LinearScale, BarElement, LineElement,
+  PointElement, ArcElement, Tooltip, Legend, Filler,
+} from "chart.js";
+
+Chart.register(
+  CategoryScale, LinearScale, BarElement, LineElement,
+  PointElement, ArcElement, Tooltip, Legend, Filler
+);
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
 const HK = {
@@ -316,7 +326,6 @@ const fmtDate = (iso: string) => {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 export function BackorderDashboard() {
-  const [cjsReady, setCjsReady] = useState(false);
   const [sortKey, setSortKey] = useState<keyof BO>("age");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [filterStatus, setFilterStatus] = useState("all");
@@ -333,154 +342,128 @@ export function BackorderDashboard() {
   const shipRef  = useRef<HTMLCanvasElement>(null);
 
   // Chart instances (for cleanup)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const charts = useRef<any[]>([]);
-
-  // ── Load Chart.js from CDN ──────────────────────────────────────────────────
-  useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if ((window as any).Chart) { setCjsReady(true); return; }
-    const existing = document.getElementById("cjs-cdn");
-    if (existing) {
-      existing.addEventListener("load", () => setCjsReady(true));
-      return;
-    }
-    const s = document.createElement("script");
-    s.id = "cjs-cdn";
-    s.src = "https://unpkg.com/chart.js@4.4.4/dist/chart.umd.min.js";
-    s.onload = () => setCjsReady(true);
-    document.head.appendChild(s);
-  }, []);
+  const chartInstances = useRef<Chart[]>([]);
 
   // ── Build charts ────────────────────────────────────────────────────────────
   useEffect(() => {
-    if (!cjsReady) return;
+    chartInstances.current.forEach((c) => c.destroy());
+    chartInstances.current = [];
+
+    // Helper: create and register
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const CJ = (window as any).Chart;
+    const mk = (canvas: HTMLCanvasElement | null, cfg: any) => {
+      if (!canvas) return;
+      chartInstances.current.push(new Chart(canvas, cfg));
+    };
 
-    charts.current.forEach((c) => c.destroy());
-    charts.current = [];
-
-    const defaults = CJ.defaults;
-    defaults.font.family = "'Inter', system-ui, sans-serif";
-    defaults.color = HK.textSub;
+    Chart.defaults.font.family = "'Inter', system-ui, sans-serif";
+    Chart.defaults.color = HK.textSub;
 
     const gridColor = HK.border;
-    const tickOpts = { color: HK.textSub, font: { size: 11 } };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const tickOpts: any = { color: HK.textSub, font: { size: 11 } };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const fmtK = (v: any) => `$${v}K`;
 
     // 1. Flow chart — combo bar + line
-    if (flowRef.current) {
-      charts.current.push(
-        new CJ(flowRef.current, {
-          type: "bar",
-          data: {
-            labels: FLOW_LABELS,
-            datasets: [
-              { label: "Inflow GP", data: INFLOW_GP, backgroundColor: HK.cta + "CC", order: 2 },
-              { label: "Shipped GP", data: SHIPPED_GP, backgroundColor: HK.success + "CC", order: 2 },
-              {
-                label: "GP Balance", data: BALANCE,
-                type: "line", borderColor: HK.error, borderWidth: 2,
-                pointRadius: 3, pointBackgroundColor: HK.error,
-                fill: false, tension: 0.3, yAxisID: "y2", order: 1,
-              },
-            ],
+    mk(flowRef.current, {
+      type: "bar",
+      data: {
+        labels: FLOW_LABELS,
+        datasets: [
+          { label: "Inflow GP", data: INFLOW_GP, backgroundColor: HK.cta + "CC", order: 2 },
+          { label: "Shipped GP", data: SHIPPED_GP, backgroundColor: HK.success + "CC", order: 2 },
+          {
+            label: "GP Balance", data: BALANCE,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            type: "line" as any, borderColor: HK.error, borderWidth: 2,
+            pointRadius: 3, pointBackgroundColor: HK.error,
+            fill: false, tension: 0.3, yAxisID: "y2", order: 1,
           },
-          options: {
-            responsive: true, maintainAspectRatio: false,
-            plugins: { legend: { labels: { font: { size: 11 }, boxWidth: 12 } } },
-            scales: {
-              x: { grid: { color: gridColor }, ticks: tickOpts, stacked: true },
-              y: { grid: { color: gridColor }, ticks: { ...tickOpts, callback: (v: number) => `$${v}K` }, stacked: true, title: { display: true, text: "GP $K", font: { size: 10 } } },
-              y2: { position: "right", grid: { display: false }, ticks: { ...tickOpts, callback: (v: number) => `$${v}K` }, title: { display: true, text: "Balance $K", font: { size: 10 } } },
-            },
-          },
-        })
-      );
-    }
+        ],
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { labels: { font: { size: 11 }, boxWidth: 12 } } },
+        scales: {
+          x: { grid: { color: gridColor }, ticks: tickOpts, stacked: true },
+          y: { grid: { color: gridColor }, ticks: { ...tickOpts, callback: fmtK }, stacked: true, title: { display: true, text: "GP $K", font: { size: 10 } } },
+          y2: { position: "right", grid: { display: false }, ticks: { ...tickOpts, callback: fmtK }, title: { display: true, text: "Balance $K", font: { size: 10 } } },
+        },
+      },
+    });
 
     // 2. Status doughnut
     const statusGroups = { ready: 0, waiting: 0, waiting_op: 0, wts: 0 } as Record<string, number>;
     DATA.forEach((r) => { statusGroups[r.ps] += r.v; });
-    if (donutRef.current) {
-      charts.current.push(
-        new CJ(donutRef.current, {
-          type: "doughnut",
-          data: {
-            labels: ["Ready", "Waiting", "Waiting (op)", "WTS"],
-            datasets: [{
-              data: [statusGroups.ready, statusGroups.waiting, statusGroups.waiting_op, statusGroups.wts],
-              backgroundColor: [HK.success, HK.warning, HK.error, HK.black],
-              borderWidth: 2, borderColor: HK.white,
-            }],
-          },
-          options: {
-            responsive: true, maintainAspectRatio: false,
-            cutout: "62%",
-            plugins: {
-              legend: { position: "bottom", labels: { font: { size: 11 }, boxWidth: 12, padding: 8 } },
-              tooltip: { callbacks: { label: (c: any) => ` ${fmt$(c.raw)}` } },
-            },
-          },
-        })
-      );
-    }
+    mk(donutRef.current, {
+      type: "doughnut",
+      data: {
+        labels: ["Ready", "Waiting", "Waiting (op)", "WTS"],
+        datasets: [{
+          data: [statusGroups.ready, statusGroups.waiting, statusGroups.waiting_op, statusGroups.wts],
+          backgroundColor: [HK.success, HK.warning, HK.error, HK.black],
+          borderWidth: 2, borderColor: HK.white,
+        }],
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        cutout: "62%",
+        plugins: {
+          legend: { position: "bottom", labels: { font: { size: 11 }, boxWidth: 12, padding: 8 } },
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          tooltip: { callbacks: { label: (c: any) => ` ${fmt$(c.raw)}` } },
+        },
+      },
+    });
 
     // 3. Category value — horizontal bar
     const catTotals: Record<string, number> = {};
     DATA.forEach((r) => r.l.forEach((ln) => { catTotals[ln.cat] = (catTotals[ln.cat] ?? 0) + ln.rv; }));
     const catSorted = Object.entries(catTotals).sort((a, b) => b[1] - a[1]);
-    if (catRef.current) {
-      charts.current.push(
-        new CJ(catRef.current, {
-          type: "bar",
-          data: {
-            labels: catSorted.map(([k]) => k),
-            datasets: [{
-              data: catSorted.map(([, v]) => Math.round(v / 1000)),
-              backgroundColor: catSorted.map(([k]) => CAT_COLORS[k] ?? HK.muted),
-              borderRadius: 3,
-            }],
-          },
-          options: {
-            indexAxis: "y", responsive: true, maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: {
-              x: { grid: { color: gridColor }, ticks: { ...tickOpts, callback: (v: number) => `$${v}K` } },
-              y: { grid: { display: false }, ticks: tickOpts },
-            },
-          },
-        })
-      );
-    }
+    mk(catRef.current, {
+      type: "bar",
+      data: {
+        labels: catSorted.map(([k]) => k),
+        datasets: [{
+          data: catSorted.map(([, v]) => Math.round(v / 1000)),
+          backgroundColor: catSorted.map(([k]) => CAT_COLORS[k] ?? HK.muted),
+          borderRadius: 3,
+        }],
+      },
+      options: {
+        indexAxis: "y", responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { color: gridColor }, ticks: { ...tickOpts, callback: fmtK } },
+          y: { grid: { display: false }, ticks: tickOpts },
+        },
+      },
+    });
 
     // 4. Top customers — horizontal bar
     const custTotals: Record<string, number> = {};
     DATA.forEach((r) => { custTotals[r.c] = (custTotals[r.c] ?? 0) + r.v; });
     const custSorted = Object.entries(custTotals).sort((a, b) => b[1] - a[1]).slice(0, 7);
-    if (custRef.current) {
-      charts.current.push(
-        new CJ(custRef.current, {
-          type: "bar",
-          data: {
-            labels: custSorted.map(([k]) => k.split(" ").slice(0, 2).join(" ")),
-            datasets: [{
-              data: custSorted.map(([, v]) => Math.round(v / 1000)),
-              backgroundColor: HK.cta + "BB",
-              borderRadius: 3,
-            }],
-          },
-          options: {
-            indexAxis: "y", responsive: true, maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: {
-              x: { grid: { color: gridColor }, ticks: { ...tickOpts, callback: (v: number) => `$${v}K` } },
-              y: { grid: { display: false }, ticks: { ...tickOpts, font: { size: 10 } } },
-            },
-          },
-        })
-      );
-    }
+    mk(custRef.current, {
+      type: "bar",
+      data: {
+        labels: custSorted.map(([k]) => k.split(" ").slice(0, 2).join(" ")),
+        datasets: [{
+          data: custSorted.map(([, v]) => Math.round(v / 1000)),
+          backgroundColor: HK.cta + "BB",
+          borderRadius: 3,
+        }],
+      },
+      options: {
+        indexAxis: "y", responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { color: gridColor }, ticks: { ...tickOpts, callback: fmtK } },
+          y: { grid: { display: false }, ticks: { ...tickOpts, font: { size: 10 } } },
+        },
+      },
+    });
 
     // 5. Ship-week GP buckets
     const buckets = { overdue: 0, this_wk: 0, next_wk: 0, "2_4wk": 0, "4plus": 0 };
@@ -492,38 +475,34 @@ export function BackorderDashboard() {
       else if (r.dtc <= 28) buckets["2_4wk"] += gp;
       else buckets["4plus"] += gp;
     });
-    if (shipRef.current) {
-      charts.current.push(
-        new CJ(shipRef.current, {
-          type: "bar",
-          data: {
-            labels: ["Overdue", "This week", "Next week", "2–4 weeks", "4+ weeks"],
-            datasets: [{
-              data: [
-                Math.round(buckets.overdue / 1000),
-                Math.round(buckets.this_wk / 1000),
-                Math.round(buckets.next_wk / 1000),
-                Math.round(buckets["2_4wk"] / 1000),
-                Math.round(buckets["4plus"] / 1000),
-              ],
-              backgroundColor: [HK.error, HK.warning, HK.success, HK.cta, HK.muted],
-              borderRadius: 3,
-            }],
-          },
-          options: {
-            indexAxis: "y", responsive: true, maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: {
-              x: { grid: { color: gridColor }, ticks: { ...tickOpts, callback: (v: number) => `$${v}K` } },
-              y: { grid: { display: false }, ticks: tickOpts },
-            },
-          },
-        })
-      );
-    }
+    mk(shipRef.current, {
+      type: "bar",
+      data: {
+        labels: ["Overdue", "This week", "Next week", "2–4 weeks", "4+ weeks"],
+        datasets: [{
+          data: [
+            Math.round(buckets.overdue / 1000),
+            Math.round(buckets.this_wk / 1000),
+            Math.round(buckets.next_wk / 1000),
+            Math.round(buckets["2_4wk"] / 1000),
+            Math.round(buckets["4plus"] / 1000),
+          ],
+          backgroundColor: [HK.error, HK.warning, HK.success, HK.cta, HK.muted],
+          borderRadius: 3,
+        }],
+      },
+      options: {
+        indexAxis: "y", responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { color: gridColor }, ticks: { ...tickOpts, callback: fmtK } },
+          y: { grid: { display: false }, ticks: tickOpts },
+        },
+      },
+    });
 
-    return () => { charts.current.forEach((c) => c.destroy()); charts.current = []; };
-  }, [cjsReady]);
+    return () => { chartInstances.current.forEach((c) => c.destroy()); chartInstances.current = []; };
+  }, []);
 
   // ── Computed metrics ────────────────────────────────────────────────────────
   const metrics = useMemo(() => {
