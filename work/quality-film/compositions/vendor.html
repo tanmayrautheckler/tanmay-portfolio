@@ -1,0 +1,9 @@
+<template>
+<style>#root{position:absolute;inset:0;overflow:hidden}</style>
+<div id="root" data-composition-id="vendor"><div data-hf-id="hf-3wr1" id="vendor-copy" class="side-copy"><h2 data-hf-id="hf-bz70">The other<br data-hf-id="hf-rsrt"><em data-hf-id="hf-t1dg">side of it.</em></h2><p data-hf-id="hf-m4cl">The vendor sees the same items and sends a response.</p><div data-hf-id="hf-v6ze" class="pill">ONE RETURN / TWO VIEWS</div></div><div data-hf-id="hf-mw37" id="vendor-screen" class="screen vendor"><img data-hf-id="hf-2bd2" src="assets/vendor-panel.png" alt="Vendor response form with RMA reference and return scheduling"></div></div>
+<script>const tl=gsap.timeline({paused:true});
+tl.fromTo('#vendor-screen',{x:1400,scale:1},{x:0,scale:1,duration:.9,ease:'power4.inOut'},0.0);
+tl.fromTo('#vendor-copy',{x:-80,opacity:0},{x:0,opacity:1,duration:.7,ease:'power3.out'},0.4);
+tl.fromTo('#vendor-screen',{y:0},{y:-35,immediateRender:false,duration:1.1,ease:'power2.inOut'},1.95);
+window.__timelines["vendor"]=tl;</script>
+</template>

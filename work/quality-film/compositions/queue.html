@@ -1,0 +1,10 @@
+<template>
+<style>#root{position:absolute;inset:0;overflow:hidden}</style>
+<div id="root" data-composition-id="queue"><h2 data-hf-id="hf-33sl" id="queue-title" class="chapter-title">A shared view of <em data-hf-id="hf-rf7s">what’s next.</em></h2><div data-hf-id="hf-iz45" id="queue-screen" class="screen queue"><img data-hf-id="hf-ylsh" src="assets/queue.png" alt="Vendor RMA kanban with draft, sent, responded and confirmed columns"></div><div data-hf-id="hf-yyp2" id="queue-caption" class="caption">Draft → Sent to vendor → <em data-hf-id="hf-50tp">Vendor responded</em></div></div>
+<script>const tl=gsap.timeline({paused:true});
+tl.fromTo('#queue-title',{y:30,opacity:0},{y:0,opacity:1,duration:.55},0.0);
+tl.fromTo('#queue-screen',{x:1800},{x:0,duration:.8,ease:'power4.inOut'},0.0);
+tl.fromTo('#queue-screen',{scale:1,y:0},{scale:1.12,y:45,immediateRender:false,duration:1.15,ease:'power2.inOut'},1.05);
+tl.fromTo('#queue-caption',{y:30,opacity:0},{y:0,opacity:1,duration:.4},1.2);
+window.__timelines["queue"]=tl;</script>
+</template>

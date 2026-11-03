@@ -1,0 +1,10 @@
+<template>
+<style>#root{position:absolute;inset:0;overflow:hidden}</style>
+<div id="root" data-composition-id="intro"><div data-hf-id="hf-hdnq" class="intro"><h1 data-hf-id="hf-qb4q" id="intro-title">One return.<br data-hf-id="hf-x5px"><em data-hf-id="hf-1ubu">Every handoff.</em></h1><p data-hf-id="hf-vtnt" id="intro-sub">A return. Connected.</p></div></div>
+<script>const tl=gsap.timeline({paused:true});
+tl.fromTo('#intro-title',{y:100,opacity:.2},{y:0,opacity:1,duration:.85,ease:'power3.out'},0.0);
+tl.fromTo('#intro-sub',{y:22,opacity:0},{y:0,opacity:1,duration:.5},0.55);
+tl.fromTo('#intro-title',{y:0,opacity:1},{y:-100,opacity:0,immediateRender:false,duration:.55,ease:'power3.in'},1.6);
+tl.fromTo('#intro-sub',{opacity:1},{opacity:0,immediateRender:false,duration:.25},1.55);
+window.__timelines["intro"]=tl;</script>
+</template>
