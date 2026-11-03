@@ -112,7 +112,7 @@ export function VendorPortalDemoCard() {
 // ════════════════════════════════════════════════════════════════════════════════
 // Interactive app
 // ════════════════════════════════════════════════════════════════════════════════
-function VendorPortalApp() {
+export function VendorPortalApp() {
   const [rmas, setRmas] = useState<RMA[]>(SEED);
   const [selId, setSelId] = useState<string>(SEED[0].id);
   const [search, setSearch] = useState("");
@@ -168,10 +168,10 @@ function VendorPortalApp() {
         </div>
         <div style={{ position: "relative" }}>
           <Search className="w-3.5 h-3.5" style={{ position: "absolute", left: 8, top: 7, color: HK.muted }} />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search RMA / vendor / SKU…"
+          <input aria-label="Search supplier returns" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search RMA / vendor / SKU…"
             style={{ padding: "5px 10px 5px 28px", border: `1px solid ${HK.border}`, borderRadius: 6, fontSize: 12, background: HK.white, color: HK.text, width: 210, outline: "none" }} />
         </div>
-        <select value={sortKey} onChange={(e) => setSortKey(e.target.value as "date" | "value")}
+        <select aria-label="Sort supplier returns" value={sortKey} onChange={(e) => setSortKey(e.target.value as "date" | "value")}
           style={{ padding: "5px 8px", border: `1px solid ${HK.border}`, borderRadius: 6, fontSize: 12, background: HK.white, color: HK.text }}>
           <option value="date">Newest</option>
           <option value="value">Highest value</option>
@@ -183,7 +183,7 @@ function VendorPortalApp() {
         {([["all", "All"], ["reported", "Reported"], ["approved", "Approved"], ["credited", "Credited"]] as [("all" | Status), string][]).map(([k, label]) => {
           const active = statusFilter === k;
           return (
-            <button key={k} onClick={() => setStatusFilter(k)}
+            <button key={k} aria-pressed={active} onClick={() => setStatusFilter(k)}
               style={{ padding: "4px 12px", borderRadius: 999, fontSize: 11, fontWeight: 600, cursor: "pointer",
                 background: active ? HK.black : HK.white, color: active ? HK.white : HK.textSub,
                 border: `1px solid ${active ? HK.black : HK.border}`, transition: "all .15s" }}>
@@ -223,11 +223,11 @@ function VendorPortalApp() {
               const active = r.id === selId;
               const st = STATUS_META[r.status];
               return (
-                <motion.div key={r.id} layout
+                <motion.button key={r.id} type="button" aria-pressed={active} layout
                   initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
                   transition={{ duration: 0.2, delay: i * 0.03 }}
                   onClick={() => setSelId(r.id)}
-                  style={{ display: "grid", gridTemplateColumns: "84px 1fr 84px 86px", padding: "9px 12px", cursor: "pointer",
+                  style={{ display: "grid", width: "100%", textAlign: "left", gridTemplateColumns: "84px 1fr 84px 86px", padding: "9px 12px", cursor: "pointer",
                     borderBottom: `1px solid ${HK.band}`, alignItems: "center",
                     background: active ? "#eff6ff" : "transparent",
                     boxShadow: active ? `inset 3px 0 0 ${HK.cta}` : "none" }}>
@@ -240,7 +240,7 @@ function VendorPortalApp() {
                   <div>
                     <span style={{ fontSize: 9.5, fontWeight: 700, padding: "2px 7px", borderRadius: 999, background: st.bg, color: st.color }}>{st.label}</span>
                   </div>
-                </motion.div>
+                </motion.button>
               );
             })}
           </AnimatePresence>
@@ -346,7 +346,7 @@ function DetailPanel({ rma, onSetDisp, onApprove, onIssueCredit }: {
             const meta = DISP_META[d];
             const locked = rma.status === "credited";
             return (
-              <button key={d} disabled={locked} onClick={() => onSetDisp(rma.id, active ? null : d)}
+              <button key={d} aria-pressed={active} disabled={locked} onClick={() => onSetDisp(rma.id, active ? null : d)}
                 style={{ padding: "8px 4px", borderRadius: 7, fontSize: 11, fontWeight: 600, cursor: locked ? "default" : "pointer",
                   background: active ? meta.color : HK.white, color: active ? HK.white : HK.textSub,
                   border: `1px solid ${active ? meta.color : HK.border}`, opacity: locked && !active ? 0.45 : 1, transition: "all .15s" }}>
@@ -394,7 +394,7 @@ function DetailPanel({ rma, onSetDisp, onApprove, onIssueCredit }: {
               <span style={{ color: HK.textSub }}>{rma.vendor}</span>
               <span style={{ fontFamily: "monospace", fontWeight: 700 }}>{fmt$(rma.qty * rma.unit)}</span>
             </div>
-            <div style={{ fontSize: 10.5, color: HK.muted, marginTop: 4 }}>Posted to AP · awaiting vendor acceptance</div>
+            <div style={{ fontSize: 10.5, color: HK.muted, marginTop: 4 }}>Sample credit draft. No accounting entry is posted.</div>
           </motion.div>
         ) : (
           <div style={{ display: "flex", gap: 8 }}>

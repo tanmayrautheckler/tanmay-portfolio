@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ReadingGuide } from "@/components/case-studies/reading-guide";
 import { HeroCS } from "@/components/case-studies/hero-cs";
 import { ScopeGrid } from "@/components/case-studies/scope-grid";
 import { Situation } from "@/components/case-studies/situation";
@@ -23,6 +24,7 @@ export const metadata: Metadata = {
 export default function OdooSeventeenCaseStudy() {
   return (
     <article className="serif-prose-root">
+      <ReadingGuide items={[{ id: "overview", label: "Overview" }, { id: "scope", label: "Scope" }, { id: "decisions", label: "Decisions" }, { id: "cutover", label: "Cutover" }, { id: "outcomes", label: "Outcomes" }, { id: "lessons", label: "Lessons" }]} />
       <HeroCS />
       <ScopeGrid />
       <Situation />

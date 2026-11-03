@@ -11,8 +11,8 @@
  */
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { X, Bot, Cpu, Database, Sparkles, Send, CornerDownLeft } from "lucide-react";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { X, Bot, Cpu, Database, Sparkles, Send } from "lucide-react";
 import { useIsMobile } from "./use-is-mobile";
 
 // ── Dark agent tokens ─────────────────────────────────────────────────────────────
@@ -201,7 +201,7 @@ type Event =
   | { kind: "metrics"; metrics: NonNullable<Scenario["metrics"]> }
   | { kind: "answer"; text: string; full: string };
 
-function MCPCoworkApp() {
+export function MCPCoworkApp() {
   const [events, setEvents] = useState<Event[]>([]);
   const [running, setRunning] = useState(false);
   const [activeNode, setActiveNode] = useState(-1);
@@ -209,14 +209,25 @@ function MCPCoworkApp() {
   const mounted = useRef(true);
   const scrollRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
+  const reducedMotion = useReducedMotion();
 
-  useEffect(() => () => { mounted.current = false; }, []);
-  useEffect(() => { scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" }); }, [events]);
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
+  useEffect(() => { scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: reducedMotion ? "auto" : "smooth" }); }, [events, reducedMotion]);
 
   const run = useCallback(async (s: Scenario, idx: number) => {
     if (running) return;
     setRunning(true);
     setUsed((u) => new Set(u).add(idx));
+    if (reducedMotion) {
+      const completedEvents: Event[] = [{ kind: "user", text: s.q }, { kind: "plan", text: s.plan }, ...s.calls.map((call): Event => ({ kind: "call", call, done: true }))];
+      if (s.table) completedEvents.push({ kind: "table", table: s.table });
+      if (s.metrics) completedEvents.push({ kind: "metrics", metrics: s.metrics });
+      completedEvents.push({ kind: "answer", text: s.answer, full: s.answer });
+      setEvents((previous) => [...previous, ...completedEvents]);
+      setActiveNode(-1);
+      setRunning(false);
+      return;
+    }
     setEvents((e) => [...e, { kind: "user", text: s.q }]);
     await sleep(450); if (!mounted.current) return;
 
@@ -252,7 +263,7 @@ function MCPCoworkApp() {
     await sleep(300); if (!mounted.current) return;
     setActiveNode(-1);
     setRunning(false);
-  }, [running]);
+  }, [running, reducedMotion]);
 
   const reset = () => { if (running) return; setEvents([]); setUsed(new Set()); setActiveNode(-1); };
 
@@ -301,9 +312,9 @@ function MCPCoworkApp() {
             <div style={{ width: 54, height: 54, borderRadius: 14, background: D.accent + "1a", border: `1px solid ${D.accent}40`, display: "flex", alignItems: "center", justifyContent: "center" }}>
               <Bot className="w-6 h-6" style={{ color: D.accent }} />
             </div>
-            <div style={{ fontSize: 15, fontWeight: 600 }}>Ask the ERP anything</div>
+            <div style={{ fontSize: 15, fontWeight: 600 }}>Follow a question into Odoo</div>
             <div style={{ fontSize: 12.5, color: D.sub, maxWidth: 360, lineHeight: 1.5 }}>
-              Claude calls live Odoo models over MCP — no exports, no middleware. Pick a prompt below to watch it run.
+              Choose a sample question to follow the plan, query, records and answer. This walkthrough uses scripted responses.
             </div>
           </div>
         )}
@@ -341,11 +352,7 @@ function MCPCoworkApp() {
               );
             })}
           </div>
-          {/* fake input */}
-          <div style={{ marginTop: 10, display: "flex", alignItems: "center", gap: 8, background: D.panel, border: `1px solid ${D.border}`, borderRadius: 10, padding: "9px 12px" }}>
-            <span style={{ flex: 1, fontSize: 12.5, color: D.faint }}>Or type your own query…</span>
-            <CornerDownLeft className="w-3.5 h-3.5" style={{ color: D.faint }} />
-          </div>
+          <p style={{ marginTop: 12, fontSize: 11, color: D.sub }}>Six prepared examples. No live account connection.</p>
         </div>
       </div>
     </div>
@@ -399,7 +406,7 @@ function EventRow({ ev }: { ev: Event }) {
     return (
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
         <NodeDot color={D.green} icon={Sparkles} />
-        <div style={{ flex: 1, background: "#0e0e18", border: `1px solid ${D.border}`, borderRadius: 8, overflow: "hidden" }}>
+        <div style={{ flex: 1, minWidth: 0, background: "#0e0e18", border: `1px solid ${D.border}`, borderRadius: 8, overflowX: "auto" }}>
           <div style={{ padding: "7px 12px", fontSize: 10.5, color: D.sub, fontFamily: "monospace", borderBottom: `1px solid ${D.border}`, background: "#11111c" }}>{table.title}</div>
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
             <thead>

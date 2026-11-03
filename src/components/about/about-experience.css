@@ -1,0 +1,60 @@
+/* One viewport, one world. Scoped to /about; other pages keep their reading frame. */
+body:has(.about-experience){overflow:hidden}
+body:has(.about-experience) .site-footer{display:none}
+.about-experience{position:fixed;inset:64px 0 0;z-index:10;background:#10202a;isolation:isolate}
+.about-experience>[data-full-page=true]{margin:0;width:100%;height:100%;border:0}
+.about-experience [data-about-stage],.about-experience [data-about-stage][data-entered=true]{height:100%;min-height:0;scroll-margin:0}
+.about-experience [data-about-stage]:focus-visible{outline-offset:-3px;outline-color:#e0c39955}
+.about-prologue{position:absolute;inset:0;z-index:1;overflow:hidden;pointer-events:none;transition:opacity 1.1s ease,visibility 1.1s}
+.about-prologue[data-hidden=true]{opacity:0;visibility:hidden}
+.about-prologue>img{object-fit:cover;object-position:center 58%;animation:about-lake-drift 28s ease-in-out infinite alternate}
+.about-prologue-shade{position:absolute;inset:0;background:linear-gradient(90deg,#071923a6,transparent 82%),linear-gradient(0deg,#06151fba,transparent 45%)}
+.about-prologue-person{position:absolute;right:3%;bottom:-13%;height:104%;width:51%;filter:drop-shadow(12px 15px 24px #11283133);animation:about-person-arrive 1.3s ease both}
+.about-prologue-person img{object-fit:contain;object-position:center bottom}
+.about-opening-location{position:absolute;bottom:25px;right:30px;font:8px ui-monospace,monospace;letter-spacing:.13em;color:#d1e0df}
+.about-experience [data-entered=false]>div:has(>h1){top:25%;left:7%;right:7%;z-index:2}
+.about-experience h1{font:500 clamp(80px,10vw,160px)/.88 var(--font-inter),sans-serif;letter-spacing:-.07em;color:#f6f0df;margin:26px 0 30px;max-width:700px}
+.about-experience h1 em{font-family:var(--font-serif),Georgia,serif;font-weight:400;color:#f6f0df}
+.about-experience .about-read-instead{display:inline-flex!important;margin-top:15px!important;background:transparent!important;border:0!important;box-shadow:none!important;color:#f2ead8!important;padding:0!important;min-height:32px!important;font-size:12px;text-shadow:0 1px 10px #0008}
+.about-experience [data-entered=false] small{max-width:330px}
+.about-experience [data-entered=true]>div:has(>button[aria-label="Open story journal"]){gap:6px}
+@keyframes about-lake-drift{from{transform:scale(1.02) translateX(-.5%)}to{transform:scale(1.065) translateX(.5%)}}
+@keyframes about-person-arrive{from{opacity:0;translate:12px 10px}to{opacity:1;translate:0 0}}
+.about-journal{width:min(1060px,calc(100% - 40px));max-height:calc(100dvh - 110px);top:82px;background:#f0eee5;color:#253c36;border:1px solid #a8b0a0;display:flex;flex-direction:column;overflow:hidden;border-radius:3px}
+.journal-header{display:flex;align-items:center;justify-content:space-between;padding:13px 25px;border-bottom:1px solid #344f3d25;font:9px ui-monospace,monospace;letter-spacing:.15em;flex-shrink:0}
+.journal-header button{color:#253c36}
+.journal-chapters{display:flex;overflow-x:auto;gap:4px;padding:10px 18px;border-bottom:1px solid #344f3d25;flex-shrink:0}
+.journal-chapters button{color:#4a5d52;white-space:nowrap;font-size:11px;gap:8px;height:36px;border-radius:2px}.journal-chapters button span{font:9px ui-monospace,monospace;opacity:.6}.journal-chapters button[aria-pressed=true]{background:#293f36;color:#fff6df}.journal-chapters button:hover{background:#d6d9cc}
+.journal-body{padding:35px clamp(22px,5vw,65px) 45px;overflow-y:auto;overscroll-behavior:contain;flex:1;min-height:0;animation:journal-open .25s ease}
+.journal-eyebrow,.journal-timeline span,.journal-spread span,.journal-quote>span{font:9px ui-monospace,monospace;letter-spacing:.15em;color:#5c705f}
+.journal-body>h2{font:clamp(35px,5vw,65px)/1.05 var(--font-serif),Georgia,serif;letter-spacing:-.04em;margin:18px 0 24px;color:#253c36}
+.journal-body>p:not(.journal-eyebrow){font-size:14px;line-height:1.9;max-width:680px;color:#4f6256;margin:13px 0}
+.journal-timeline{border-left:1px solid #74866e66;margin-top:35px;padding-left:27px;display:grid;gap:28px}.journal-timeline h3{font-size:19px;font-weight:500;letter-spacing:-.03em;margin:8px 0}.journal-timeline p{font-size:12px;line-height:1.8;color:#586958;max-width:600px}
+.journal-subtitle{font:30px var(--font-serif),Georgia,serif;letter-spacing:-.04em;margin:35px 0 20px}.journal-certifications{display:flex;flex-wrap:wrap;gap:8px;list-style:none}.journal-certifications li{font-size:11px;border:1px solid #74866e55;padding:8px 12px;border-radius:2px}
+.journal-photos{display:flex;gap:17px;overflow-x:auto;scroll-snap-type:x mandatory;padding:18px 0 23px;margin-top:15px}.journal-photos figure{flex:0 0 38%;scroll-snap-align:start;min-width:220px}.journal-photos img{width:100%;height:260px;object-fit:cover}.journal-photos figcaption{font-size:14px;margin-top:10px}.journal-photos small{display:block;font-size:11px;line-height:1.7;color:#60705f;margin-top:5px}
+.journal-spread{display:grid;grid-template-columns:1fr 1fr;gap:30px;align-items:center;margin-top:30px}.journal-spread img{width:100%;height:330px;object-fit:cover}.journal-spread h3{font:36px/1.1 var(--font-serif),Georgia,serif;margin:20px 0}.journal-spread p{font-size:13px;line-height:1.9;color:#526756}
+.journal-quote{padding:35px 0;margin-top:30px;border-block:1px solid #74866e44}.journal-quote>p{font:clamp(30px,4vw,48px)/1.2 var(--font-serif),Georgia,serif;letter-spacing:-.03em;margin:25px 0;max-width:650px}.journal-quote small{font-size:12px;color:#5b705d}.journal-quote a{display:flex;align-items:center;gap:10px;margin-top:25px;font-size:13px}
+.journal-footer{display:flex;align-items:center;justify-content:space-between;padding:11px 23px;border-top:1px solid #74866e44;flex-shrink:0}.journal-footer>span{font:10px ui-monospace,monospace;color:#5c705f}.journal-footer button{color:#253c36;font-size:11px}
+.journal-loading{height:200px;display:grid;place-items:center;color:#5c705f;font-size:13px}
+@keyframes journal-open{from{opacity:0;translate:0 6px}to{opacity:1;translate:0 0}}
+@media(max-width:700px){.about-experience h1{font-size:clamp(65px,16vw,110px);max-width:90%;margin-top:22px}.about-experience [data-entered=false]>div:has(>h1){top:22%;left:7%}.about-prologue-person{width:86%;height:80%;right:-22%;bottom:-9%;opacity:.9}.about-prologue-shade{background:linear-gradient(90deg,#071923ad,transparent),linear-gradient(0deg,#06151fcd,transparent 60%)}.about-opening-location{font-size:6px;right:15px;bottom:14px;max-width:180px;text-align:right;line-height:1.7}.about-experience [data-entered=false]>div:has(>h1)>span{max-width:220px;font-size:12px}.about-experience button[aria-label="Enable game sound"],.about-experience button[aria-label="Mute game sound"]{display:inline-flex!important}.about-experience button[aria-label="Capture mouse for free look"]{display:none}.about-experience [data-entered=true]>div:has(>button[aria-label="Open story journal"]){top:57px;gap:3px}.about-journal{top:76px;width:calc(100% - 20px);max-height:calc(100dvh - 88px)}.journal-header{padding:10px 15px;font-size:8px}.journal-chapters{padding:8px 10px}.journal-body{padding:25px 22px 30px}.journal-spread{grid-template-columns:1fr;gap:20px}.journal-spread img{height:280px}.journal-photos figure{flex-basis:80%}}
+@media(prefers-reduced-motion:reduce){.about-prologue,.journal-body,.about-prologue>img,.about-prologue-person{animation:none;transition:none}}
+.journal-chapters button[aria-pressed=true]:hover{background:#293f36;color:#fff6df}
+@media(max-height:700px){.about-experience [data-entered=false]>div:has(>h1){top:15%}.about-experience h1{font-size:clamp(54px,12vh,105px);margin:18px 0}.about-experience [data-entered=false]>div:has(>h1)>button{margin-top:16px}.about-experience [data-entered=false]>div:has(>h1)>small{margin-top:10px}.about-experience .about-read-instead{margin-top:7px!important}}
+@media(max-height:480px){.about-experience [data-entered=false]>div:has(>h1){top:10%;max-width:560px}.about-experience h1{font-size:48px;margin:12px 0}.about-experience h1 br{display:none}.about-experience [data-entered=false]>div:has(>h1)>span{font-size:11px;line-height:1.4}.about-experience [data-entered=false]>div:has(>h1)>small{display:none}.about-experience .about-read-instead{position:absolute;left:225px;bottom:4px}.about-opening-location{display:none}}
+
+/* One viewing frame; the photographs and globe keep their own visual identity. */
+.about-journal{background:#10191c;border-color:#c4d4cf26;border-radius:8px;box-shadow:0 35px 120px #0008}
+.journal-header{height:48px;padding:8px 22px;background:#10191c;color:#b6c5c0;border-bottom-color:#d0e0d31c;letter-spacing:.12em}
+.journal-header button{color:#e2e8da;border-radius:50%;width:30px;height:30px}
+.journal-header button:hover{background:#ffffff12}
+.journal-chapters{background:#10191c;border-bottom-color:#d0e0d31c;padding:0 17px;gap:12px;min-height:48px;scrollbar-width:none}
+.journal-chapters button{height:48px;border-radius:0;padding:0 8px;color:#96aaa4;font-size:10px;border-bottom:2px solid transparent;transition:color .2s,border-color .2s}
+.journal-chapters button[aria-pressed=true],.journal-chapters button[aria-pressed=true]:hover{background:transparent;color:#f3d29b;border-bottom-color:#d2b886}
+.journal-chapters button:hover{background:transparent;color:#f0eee5}
+.journal-chapters button span{color:#6f8980;opacity:1;font-size:8px}
+.journal-body{background:#f0eee5}
+.journal-footer{background:#10191c;height:45px;padding:6px 18px;border-top-color:#d0e0d31c}
+.journal-footer button{color:#b9cac2;font-size:10px;height:30px;padding:5px 8px}.journal-footer button:hover{background:#ffffff0b;color:#f0d2a0}.journal-footer>span{color:#8ca59c;font-size:9px}
+.journal-cinema-shell .journal-body{background:#0c161b}
+@media(max-width:700px){.about-journal{top:72px;max-height:calc(100dvh - 84px);width:calc(100% - 16px)}.journal-header{height:40px;padding:5px 13px;font-size:7px}.journal-chapters{padding:0 8px;gap:4px;min-height:41px}.journal-chapters button{height:41px;padding:0 7px;font-size:9px;gap:5px}.journal-footer{height:41px;padding:5px 10px}.journal-footer button{font-size:9px}.journal-chapters button span{font-size:7px}}

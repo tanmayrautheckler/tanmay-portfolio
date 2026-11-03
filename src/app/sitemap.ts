@@ -16,10 +16,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: "/skills",                 priority: 0.7, freq: "monthly" },
     { path: "/labs",                   priority: 0.9, freq: "weekly" },
     { path: "/contact",                priority: 0.6, freq: "yearly" },
-    { path: "/case-studies",           priority: 0.8, freq: "monthly" },
-    { path: "/case-studies/odoo-17",   priority: 0.7, freq: "monthly" },
-    { path: "/case-studies/vendor-portal", priority: 0.7, freq: "monthly" },
-    { path: "/case-studies/mcp-cowork",    priority: 0.7, freq: "monthly" },
   ];
 
   const staticEntries: MetadataRoute.Sitemap = staticRoutes.map((r) => ({

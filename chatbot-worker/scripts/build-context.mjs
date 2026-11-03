@@ -77,7 +77,7 @@ function buildIdentity() {
   }
   md += subheader("Education");
   for (const e of EDUCATION) {
-    md += `- ${e.degree}, ${e.school} (${e.location})\n`;
+    md += `- ${e.degree}, ${e.school} (${e.location}; GPA ${e.gpa})\n`;
   }
   md += subheader("Certifications");
   md += CERTIFICATIONS.map((c) => `- ${c}`).join("\n") + "\n";
@@ -125,7 +125,7 @@ function buildSkills() {
 
 function buildProjects() {
   let md = header("Projects");
-  md += `Tanmay has shipped ${projects.length} projects across manufacturing operations, ERP, integrations, AI, and data dashboards. Featured projects have full case studies; the rest are summarized below.\n\n`;
+  md += `Tanmay's portfolio includes ${projects.length} projects across manufacturing operations, ERP, integrations, AI, data dashboards, personal prototypes and academic work. Featured projects have full case studies; the rest are summarized below.\n\n`;
 
   // Featured first
   const featured = projects.filter((p) => p.featured);

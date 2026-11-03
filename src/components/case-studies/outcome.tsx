@@ -11,7 +11,7 @@ export function Outcome() {
   const reduced = useReducedMotion();
 
   return (
-    <section ref={ref} className="px-6 md:px-12 lg:px-20 py-28 md:py-40 bg-foreground text-background">
+    <section id="outcomes" ref={ref} className="px-6 md:px-12 lg:px-20 py-28 md:py-40 bg-foreground text-background">
       <div className="max-w-6xl mx-auto">
         <motion.p
           initial={reduced ? undefined : { opacity: 0, y: 10 }}

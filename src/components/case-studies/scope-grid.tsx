@@ -102,7 +102,7 @@ export function ScopeGrid() {
   const inView = useInView(ref, { once: true, margin: "-80px" });
 
   return (
-    <section ref={ref} className="px-6 md:px-12 lg:px-20 py-24 md:py-36">
+    <section id="scope" ref={ref} className="px-6 md:px-12 lg:px-20 py-24 md:py-36">
       <div className="max-w-6xl mx-auto">
         {/* Section header */}
         <motion.div

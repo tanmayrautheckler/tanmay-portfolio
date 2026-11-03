@@ -96,7 +96,7 @@ export function CutoverTimeline() {
   const progressHeight = useTransform(scrollYProgress, [0, 1], ["0%", "100%"]);
 
   return (
-    <section className="px-6 md:px-12 lg:px-20 py-24 md:py-36 bg-foreground/[0.015]">
+    <section id="cutover" className="px-6 md:px-12 lg:px-20 py-24 md:py-36 bg-foreground/[0.015]">
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="max-w-2xl mb-16 md:mb-24">

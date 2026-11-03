@@ -7,6 +7,7 @@ import { Footer } from "@/components/footer";
 import { InteractiveEffects } from "@/components/interactive-wrapper";
 import { PageTransition } from "@/components/page-transition";
 import "./globals.css";
+import "@/components/site-shell.css";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -49,7 +50,7 @@ export default function RootLayout({
       <body className="min-h-screen flex flex-col antialiased bg-background text-foreground noise">
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
           <Nav />
-          <main className="flex-1 pt-16">
+          <main id="main-content" tabIndex={-1} className="flex-1 pt-16 outline-none">
             <PageTransition>{children}</PageTransition>
           </main>
           <Footer />

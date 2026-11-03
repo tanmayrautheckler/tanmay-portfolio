@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useEffect } from "react";
+import { useCallback, useSyncExternalStore } from "react";
 
 /**
  * Tiny Web Audio synthesizer — no external files needed.
@@ -98,33 +98,41 @@ const sounds: Record<SoundType, (ctx: AudioContext) => void> = {
   },
 };
 
-export function useSound() {
-  const enabled = useRef(true);
+const SOUND_EVENT = "portfolio:sound-change";
 
-  // Resume audio context on first user interaction
-  useEffect(() => {
-    const resume = () => {
-      const ctx = getCtx();
-      if (ctx?.state === "suspended") ctx.resume();
-    };
-    window.addEventListener("click", resume, { once: true });
-    window.addEventListener("keydown", resume, { once: true });
-    return () => {
-      window.removeEventListener("click", resume);
-      window.removeEventListener("keydown", resume);
-    };
-  }, []);
+function readSoundPreference() {
+  try { return localStorage.getItem("portfolio-sound") === "on"; }
+  catch { return false; }
+}
+
+function subscribeSound(listener: () => void) {
+  window.addEventListener(SOUND_EVENT, listener);
+  window.addEventListener("storage", listener);
+  return () => {
+    window.removeEventListener(SOUND_EVENT, listener);
+    window.removeEventListener("storage", listener);
+  };
+}
+
+export function useSound() {
+  const enabled = useSyncExternalStore(subscribeSound, readSoundPreference, () => false);
 
   const play = useCallback((type: SoundType) => {
-    if (!enabled.current) return;
+    if (!readSoundPreference()) return;
     const ctx = getCtx();
-    if (!ctx || ctx.state === "suspended") return;
-    try { sounds[type](ctx); } catch { /* ignore */ }
+    if (!ctx) return;
+    if (ctx.state === "suspended") {
+      void ctx.resume().then(() => { if (readSoundPreference()) sounds[type](ctx); }).catch(() => {});
+    } else {
+      try { sounds[type](ctx); } catch { /* Audio may be unavailable. */ }
+    }
   }, []);
 
   const toggle = useCallback(() => {
-    enabled.current = !enabled.current;
-    return enabled.current;
+    const next = !readSoundPreference();
+    try { localStorage.setItem("portfolio-sound", next ? "on" : "off"); } catch { return false; }
+    window.dispatchEvent(new Event(SOUND_EVENT));
+    return next;
   }, []);
 
   return { play, toggle, enabled };

@@ -1108,7 +1108,7 @@ async def aggregate_records(
     problem: "Running on Odoo 16 with accumulating technical debt. Needed to upgrade without disrupting operations.",
     role: "Coordinated the offshore team, testing, UAT and department training. Owned the follow-up and issue resolution after the upgrade.",
     solution: "Managed the full upgrade lifecycle: pre-upgrade audit, module compatibility testing, data migration, staged rollout, and monitoring.",
-    impact: ["Minimal operational disruption", "All modules tested end-to-end", "Hands-on training to all departments", "Resulted in significant raise ($91K → $105K + bonus)"],
+    impact: ["Minimal operational disruption", "All modules tested end-to-end", "Hands-on training to all departments"],
     date: "2023–2024"
   },
   {

@@ -1,109 +1,24 @@
-"use client";
-
-/**
- * Branded 404 page — typography-led, faint mountain silhouette, looping
- * scroll-byte ticker, return-home CTA + cmd+K hint.
- */
-
 import Link from "next/link";
-import { motion } from "framer-motion";
-import { ArrowLeft, Command, Mountain } from "lucide-react";
-import { useEffect, useState } from "react";
-
-const ERROR_LINES = [
-  "// route not on the climbing path",
-  "// the summit is elsewhere",
-  "// trail markers missing here",
-  "// you scrolled too far off-map",
-  "// this checkpoint never existed",
-];
+import { ArrowRight, Mountain } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default function NotFound() {
-  const [line, setLine] = useState(ERROR_LINES[0]);
-
-  useEffect(() => {
-    let i = 0;
-    const t = setInterval(() => {
-      i = (i + 1) % ERROR_LINES.length;
-      setLine(ERROR_LINES[i]);
-    }, 2400);
-    return () => clearInterval(t);
-  }, []);
-
   return (
-    <div className="relative min-h-[80vh] flex items-center justify-center overflow-hidden px-6">
-      {/* Background mountain glyph */}
-      <motion.div
-        className="absolute inset-0 flex items-center justify-center pointer-events-none"
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 0.06, scale: 1 }}
-        transition={{ duration: 1.2 }}
-      >
-        <Mountain className="w-[60vmin] h-[60vmin] text-foreground" strokeWidth={0.5} />
-      </motion.div>
-
-      {/* Soft radial glow */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background:
-            "radial-gradient(circle at 50% 40%, rgba(var(--accent-rgb),0.10), transparent 60%)",
-        }}
-      />
-
-      <div className="relative z-10 text-center max-w-xl">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-        >
-          <p className="font-mono text-[11px] tracking-[0.3em] uppercase text-accent mb-4">
-            404 · Off-trail
-          </p>
-          <h1 className="text-7xl md:text-9xl font-bold tracking-[-0.04em] leading-[0.85] gradient-text animated-gradient">
-            Lost.
-          </h1>
-        </motion.div>
-
-        <motion.p
-          key={line}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.4 }}
-          className="font-mono text-xs md:text-sm text-text-secondary mt-6"
-        >
-          {line}
-        </motion.p>
-
-        <motion.p
-          className="text-base text-text-secondary mt-4 max-w-md mx-auto"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.6 }}
-        >
-          This page doesn&apos;t exist on the route. Head back to base camp or
-          ask the assistant where the trail picks up.
-        </motion.p>
-
-        <motion.div
-          className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-3"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5, duration: 0.6 }}
-        >
-          <Link
-            href="/"
-            className="link-arrow px-6 py-3 rounded-full bg-foreground text-background text-sm font-medium hover:opacity-90 transition-opacity inline-flex"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to base camp
-          </Link>
-          <kbd className="px-3 py-2 rounded-full border border-border text-xs text-text-secondary font-mono inline-flex items-center gap-2">
-            <Command className="w-3 h-3" />
-            +K to search
-          </kbd>
-        </motion.div>
+    <section className="relative mx-auto grid min-h-[65svh] max-w-6xl items-center gap-12 px-6 py-20 md:grid-cols-[1fr_.7fr] md:px-12">
+      <div>
+        <p className="mb-5 font-mono text-xs uppercase tracking-[.18em] text-text-secondary">404 / A small detour</p>
+        <h1 className="text-5xl font-medium leading-[1.05] tracking-[-.04em] md:text-7xl">This path<br /><span className="font-serif italic">ends here.</span></h1>
+        <p className="mt-6 max-w-md text-base leading-relaxed text-text-secondary">The page may have moved, or the address might be incomplete. There’s plenty more to explore.</p>
+        <div className="mt-8 flex flex-wrap gap-3">
+          <Button asChild className="h-11 px-5"><Link href="/projects">Explore projects <ArrowRight /></Link></Button>
+          <Button asChild variant="outline" className="h-11 px-5"><Link href="/">Back home</Link></Button>
+        </div>
       </div>
-    </div>
+      <div className="relative hidden aspect-square items-center justify-center border border-border bg-surface md:flex" aria-hidden="true">
+        <div className="absolute inset-8 rounded-full border border-dashed border-border" />
+        <Mountain size={170} strokeWidth={.8} className="text-text-secondary" />
+        <span className="absolute bottom-6 left-6 font-mono text-xs text-text-secondary">A different route awaits.</span>
+      </div>
+    </section>
   );
 }

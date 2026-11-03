@@ -1,0 +1,26 @@
+.film { color:var(--foreground); }
+.topline { display:flex; justify-content:space-between; gap:16px; margin-bottom:16px; font:11px ui-monospace,monospace; color:var(--text-secondary); }
+.frame { position:relative; overflow:hidden; aspect-ratio:16/10; background:#142c32; isolation:isolate; }
+.camera { position:absolute; inset:0; transform-origin:88% 52%; will-change:transform; }
+.camera img { object-fit:cover; object-position:center 44%; }
+.shade { position:absolute; inset:0; background:linear-gradient(180deg,#0001,transparent 42%,#081e2940 72%,#081923bb); pointer-events:none; }
+.caption { position:absolute; left:5%; bottom:7%; color:#fff; pointer-events:none; }
+.caption>span { display:block; font-size:11px; letter-spacing:.02em; margin-bottom:15px; }
+.caption strong { display:block; font-size:clamp(32px,5.8vw,66px); line-height:.98; font-weight:400; letter-spacing:-.04em; text-shadow:0 1px 12px #071c3433; }
+.caption em { font-family:Georgia,serif; font-weight:400; }
+.frameNumber { position:absolute; right:5%; bottom:7%; color:white; font:10px ui-monospace,monospace; letter-spacing:.12em; }
+.viewfinder { position:absolute; inset:20px; pointer-events:none; opacity:.5; }
+.viewfinder i { position:absolute; width:16px; height:16px; border:solid #fff; }
+.viewfinder i:nth-child(1) { top:0; left:0; border-width:1px 0 0 1px; }
+.viewfinder i:nth-child(2) { top:0; right:0; border-width:1px 1px 0 0; }
+.viewfinder i:nth-child(3) { bottom:0; left:0; border-width:0 0 1px 1px; }
+.viewfinder i:nth-child(4) { bottom:0; right:0; border-width:0 1px 1px 0; }
+.controls { display:flex; gap:16px; align-items:center; padding:12px 0; border-bottom:1px solid var(--border); }
+.controls button { width:40px; height:40px; border-radius:50%; }
+.controls label { flex:1; min-width:0; }
+.controls input { display:block; width:100%; height:24px; accent-color:var(--foreground); cursor:ew-resize; }
+.time { font:10px ui-monospace,monospace; color:var(--text-secondary); min-width:70px; text-align:right; font-variant-numeric:tabular-nums; }
+.note,.stillNote { color:var(--text-secondary); font-size:11px; line-height:1.7; margin-top:12px; }
+.film :focus-visible { outline:2px solid var(--accent); outline-offset:4px; }
+@media(max-width:600px) { .frame { aspect-ratio:4/3; }.camera { transform-origin:85% 48%; }.camera img { object-position:43% center; }.caption strong { font-size:clamp(30px,7vw,42px); }.topline { font-size:9px; }.controls { gap:8px; }.viewfinder { inset:14px; }.caption>span { font-size:10px; }.note { max-width:32ch; } }
+@media(prefers-reduced-motion:reduce) { .camera { will-change:auto; } }

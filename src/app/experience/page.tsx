@@ -1,104 +1,61 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { SectionReveal } from "@/components/section-reveal";
-import { Briefcase, Factory, ChevronDown } from "lucide-react";
-import { experiences } from "@/data/experience";
 import { useState } from "react";
+import Link from "next/link";
+import { ArrowDown, ArrowRight, ArrowUpRight, ChevronDown, Download, MapPin } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { experiences, type Experience } from "@/data/experience";
+import { CHECKPOINTS } from "@/data/journey-checkpoints";
+import "@/components/profile-pages.css";
 
-function ExperienceCard({ exp, index }: { exp: typeof experiences[0]; index: number }) {
-  const [expanded, setExpanded] = useState(index === 0);
-  const isErp = exp.type === "erp";
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 40 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: false, margin: "-50px" }}
-      transition={{ duration: 0.7, delay: index * 0.1 }}
-      className="relative"
-    >
-      {/* Timeline dot */}
-      <div className="absolute left-0 md:left-8 top-8 w-3 h-3 rounded-full bg-accent z-10 ring-4 ring-background" />
-      {/* Timeline line */}
-      {index < experiences.length - 1 && (
-        <div className="absolute left-[5px] md:left-[37px] top-11 bottom-0 w-px bg-border" />
-      )}
-
-      <div className="ml-8 md:ml-20">
-        <button
-          onClick={() => setExpanded(!expanded)}
-          className="w-full text-left luxury-card shimmer-on-hover bg-surface border border-border rounded-2xl p-8 cursor-pointer"
-        >
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-3">
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isErp ? "bg-accent/10" : "bg-orange-500/10"}`}>
-                  {isErp ? <Briefcase className="w-4 h-4 text-accent" /> : <Factory className="w-4 h-4 text-orange-400" />}
-                </div>
-                <span className="text-xs font-mono text-text-secondary tracking-wider uppercase">{exp.period}</span>
-              </div>
-              <h3 className="text-xl font-bold mb-1">{exp.title}</h3>
-              <p className="text-accent text-sm mb-2">{exp.company} &middot; {exp.location}</p>
-              <p className="text-text-secondary text-sm leading-relaxed">{exp.description}</p>
-            </div>
-            <ChevronDown className={`w-5 h-5 text-text-secondary shrink-0 mt-1 transition-transform duration-300 ${expanded ? "rotate-180" : ""}`} />
-          </div>
-
-          <motion.div
-            initial={false}
-            animate={{ height: expanded ? "auto" : 0, opacity: expanded ? 1 : 0 }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="overflow-hidden"
-          >
-            <div className="mt-6 pt-6 border-t border-border">
-              <ul className="space-y-3">
-                {exp.highlights.map((h, i) => (
-                  <li key={i} className="flex items-start gap-3 text-sm text-text-secondary">
-                    <span className="w-1.5 h-1.5 rounded-full bg-accent mt-1.5 shrink-0" />
-                    <span className="leading-relaxed">{h}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </motion.div>
-        </button>
-      </div>
-    </motion.div>
-  );
-}
+type CareerEntry = Experience & { id: string; year: string; links: { label: string; href: string }[] };
+const viva = CHECKPOINTS.find(item => item.id === "viva")!;
+const roles: CareerEntry[] = [
+  { ...experiences[0], id: "heckler-current", year: "2024", links: [{ label: "Heckler Headless", href: "/projects/heckler-headless" }, { label: "Operations workflows", href: "/projects/odoo-operations" }, { label: "Manufacturing costs", href: "/projects/manufacturing-cost-accounting" }] },
+  { ...experiences[1], id: "heckler-erp", year: "2023", links: [{ label: "Odoo 16 to 17 case study", href: "/case-studies/odoo-17" }, { label: "Accounting implementation", href: "/projects/odoo-accounting" }] },
+  { ...experiences[2], id: "united-foods", year: "2023", links: [] },
+  { id: "viva-railings", year: String(viva.year), title: viva.title, company: "VIVA Railings", location: "Dallas, TX", period: "2022", description: "My first Odoo implementation, connecting manufacturing process work with business systems.", highlights: ["Manufacturing process engineering at VIVA Railings", "First Odoo implementation, where the ERP part of my career began"], type: "manufacturing", links: [] },
+  { ...experiences[3], id: "vats-vessels", year: "2020", links: [] },
+];
+const departments = ["Manufacturing", "Procurement", "Sales", "Finance", "Quality", "Inventory", "CRM", "Shipping"];
 
 export default function ExperiencePage() {
-  return (
-    <div className="py-32 md:py-40">
-      <div className="max-w-4xl mx-auto px-6">
-        {/* Header */}
-        <SectionReveal>
-          <div className="grid md:grid-cols-[140px_1fr] gap-8 md:gap-16 mb-24">
-            <div className="section-number">E</div>
-            <div>
-              <p className="text-accent text-xs font-mono tracking-[0.2em] uppercase mb-4">
-                <span className="inline-block w-2 h-2 rounded-full bg-accent pulse-dot mr-2 align-middle" />
-                Experience
-              </p>
-              <h1 className="text-[clamp(2.5rem,6vw,5rem)] font-extrabold tracking-[-0.03em] leading-[0.95] mb-6">
-                Career Journey.
-              </h1>
-              <p className="text-text-secondary text-lg max-w-xl leading-relaxed">
-                I started by managing work on the factory floor. Today I look after the ERP
-                that connects manufacturing with the rest of the business.
-              </p>
-            </div>
-          </div>
-        </SectionReveal>
+  const [expanded, setExpanded] = useState<Set<string>>(() => new Set([roles[0].id]));
+  const allExpanded = expanded.size === roles.length;
+  const toggle = (id: string) => setExpanded(current => {
+    const next = new Set(current);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    return next;
+  });
 
-        {/* Timeline */}
-        <div className="space-y-8">
-          {experiences.map((exp, index) => (
-            <ExperienceCard key={index} exp={exp} index={index} />
-          ))}
+  return (
+    <div className="profile-page experience-ledger">
+      <header className="career-header">
+        <div><p className="profile-kicker">Experience</p><h1>From the floor.<br /><em>Through the business.</em></h1><p className="profile-lead">The tools changed. The thread stayed the same: understand how the work happens, then help people do it better.</p></div>
+        <div className="career-header-note"><span>Based in Phoenix</span><p>Manufacturing experience.<br />Business systems ownership.<br />One connected perspective.</p><Button asChild variant="ghost" className="profile-text-link"><a href="/resume.pdf" target="_blank" rel="noopener noreferrer"><Download size={15} /> View résumé</a></Button></div>
+      </header>
+
+      <div className="career-layout">
+        <aside className="career-index" aria-label="Career navigation"><p className="profile-kicker">The chapters</p><nav>{roles.map((role, i) => <a key={role.id} href={`#${role.id}`}><span>0{i + 1}</span><div>{role.company}<small>{role.year}{i === 0 ? " to now" : ""}</small></div><ArrowDown size={13} /></a>)}</nav><Link className="career-education-link" href="/about#learning-title">Education & learning <ArrowUpRight size={14} /></Link></aside>
+        <div className="career-records">
+          <div className="career-record-toolbar"><span>Roles & responsibilities</span><Button variant="ghost" className="profile-text-link" onClick={() => setExpanded(allExpanded ? new Set() : new Set(roles.map(role => role.id)))}>{allExpanded ? "Collapse details" : "Expand all details"}<ChevronDown size={14} className={allExpanded ? "rotate-180" : ""} /></Button></div>
+          {roles.map((role, index) => {
+            const isExpanded = expanded.has(role.id);
+            return <article key={role.id} id={role.id} className="career-entry" data-current={index === 0}>
+              <div className="career-entry-meta"><span>{role.period}</span>{index === 0 && <strong>Current role</strong>}<span><MapPin size={12} /> {role.location}</span></div>
+              <h2>{role.title.replace(" — ", ", ")}</h2><p className="career-company">{role.company}</p><p className="career-description">{role.description}</p>
+              {index === 0 && <div className="career-departments" aria-label="Departments connected through Odoo"><span>Connected through Odoo</span><ul>{departments.map(department => <li key={department}>{department}</li>)}</ul></div>}
+              <Button variant="ghost" className="career-details-toggle" aria-expanded={isExpanded} aria-controls={`${role.id}-details`} onClick={() => toggle(role.id)}>{isExpanded ? "Close responsibilities" : "Open responsibilities"}<ChevronDown size={15} className={isExpanded ? "rotate-180" : ""} /></Button>
+              <div id={`${role.id}-details`} className="career-details" hidden={!isExpanded}>
+                <ul>{role.highlights.map((highlight, i) => <li key={highlight}><span>0{i + 1}</span><p>{highlight}</p></li>)}</ul>
+              </div>
+              {role.links.length > 0 && <div className="career-proof"><p>See the work</p>{role.links.map(link => <Link key={link.href} href={link.href}>{link.label}<ArrowUpRight size={14} /></Link>)}</div>}
+            </article>;
+          })}
         </div>
       </div>
+
+      <footer className="profile-next"><div><span className="profile-kicker">What that adds up to</span><h2>Experience, <em>put to work.</em></h2></div><Button asChild variant="outline" className="profile-outline-link"><Link href="/skills">Explore capabilities <ArrowRight size={16} /></Link></Button></footer>
     </div>
   );
 }

@@ -56,7 +56,7 @@ export function LessonsCards() {
   const inView = useInView(ref, { once: true, margin: "-100px" });
 
   return (
-    <section ref={ref} className="px-6 md:px-12 lg:px-20 py-24 md:py-36">
+    <section id="lessons" ref={ref} className="px-6 md:px-12 lg:px-20 py-24 md:py-36">
       <div className="max-w-6xl mx-auto">
         <div className="max-w-2xl mb-14 md:mb-20">
           <p className="text-[11px] font-mono uppercase tracking-[0.25em] text-text-secondary mb-4">

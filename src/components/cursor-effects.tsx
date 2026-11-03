@@ -1,108 +1,65 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { motion, useMotionValue, useSpring } from "framer-motion";
+import { motion, useMotionValue, useSpring, useReducedMotion } from "framer-motion";
 
 // ═══ CUSTOM CURSOR WITH GLOW TRAIL ═══
 export function CustomCursor() {
-  const cursorX = useMotionValue(0);
-  const cursorY = useMotionValue(0);
+  const cursorX = useMotionValue(-100);
+  const cursorY = useMotionValue(-100);
   const springX = useSpring(cursorX, { stiffness: 300, damping: 20 });
   const springY = useSpring(cursorY, { stiffness: 300, damping: 20 });
-  const [isHovering, setIsHovering] = useState(false);
-  const [isClicking, setIsClicking] = useState(false);
+  const reduced = useReducedMotion();
+  const [hovering, setHovering] = useState(false);
+  const [clicking, setClicking] = useState(false);
   const [visible, setVisible] = useState(false);
+  const seen = useRef(false);
 
   useEffect(() => {
-    const move = (e: MouseEvent) => {
-      cursorX.set(e.clientX);
-      cursorY.set(e.clientY);
-      if (!visible) setVisible(true);
+    const fine = window.matchMedia("(hover: hover) and (pointer: fine)");
+    const move = (event: PointerEvent) => {
+      if (!fine.matches || event.pointerType !== "mouse") return;
+      cursorX.set(event.clientX);
+      cursorY.set(event.clientY);
+      if (!seen.current) {
+        springX.jump(event.clientX);
+        springY.jump(event.clientY);
+        seen.current = true;
+        setVisible(true);
+      }
+      const target = event.target;
+      setHovering(target instanceof Element && Boolean(target.closest("a,button,input,textarea,select,summary,[role='button'],.cursor-hover")));
     };
-
-    const handleHoverStart = () => setIsHovering(true);
-    const handleHoverEnd = () => setIsHovering(false);
-    const handleDown = () => setIsClicking(true);
-    const handleUp = () => setIsClicking(false);
-
-    window.addEventListener("mousemove", move);
-    window.addEventListener("mousedown", handleDown);
-    window.addEventListener("mouseup", handleUp);
-
-    // Track hoverable elements
-    const observer = new MutationObserver(() => {
-      document.querySelectorAll("a, button, [role='button'], .cursor-hover").forEach(el => {
-        el.addEventListener("mouseenter", handleHoverStart);
-        el.addEventListener("mouseleave", handleHoverEnd);
-      });
-    });
-    observer.observe(document.body, { childList: true, subtree: true });
-
-    // Initial scan
-    document.querySelectorAll("a, button, [role='button'], .cursor-hover").forEach(el => {
-      el.addEventListener("mouseenter", handleHoverStart);
-      el.addEventListener("mouseleave", handleHoverEnd);
-    });
-
+    const hide = () => { seen.current = false; setVisible(false); setClicking(false); };
+    const down = () => setClicking(true);
+    const up = () => setClicking(false);
+    const keyboard = (event: KeyboardEvent) => { if (event.key === "Tab") hide(); };
+    window.addEventListener("pointermove", move, { passive: true });
+    window.addEventListener("pointerdown", down);
+    window.addEventListener("pointerup", up);
+    window.addEventListener("blur", hide);
+    window.addEventListener("keydown", keyboard);
+    document.documentElement.addEventListener("pointerleave", hide);
+    fine.addEventListener("change", hide);
     return () => {
-      window.removeEventListener("mousemove", move);
-      window.removeEventListener("mousedown", handleDown);
-      window.removeEventListener("mouseup", handleUp);
-      observer.disconnect();
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerdown", down);
+      window.removeEventListener("pointerup", up);
+      window.removeEventListener("blur", hide);
+      window.removeEventListener("keydown", keyboard);
+      document.documentElement.removeEventListener("pointerleave", hide);
+      fine.removeEventListener("change", hide);
     };
-  }, [cursorX, cursorY, visible]);
+  }, [cursorX, cursorY, springX, springY]);
 
-  // Hide on mobile
-  if (typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches) return null;
-
-  return (
-    <>
-      {/* Outer glow ring */}
-      <motion.div
-        className="fixed top-0 left-0 pointer-events-none z-[9998] mix-blend-screen hidden md:block"
-        style={{
-          x: springX,
-          y: springY,
-          translateX: "-50%",
-          translateY: "-50%",
-          opacity: visible ? 1 : 0,
-        }}
-      >
-        <motion.div
-          animate={{
-            width: isHovering ? 60 : isClicking ? 20 : 36,
-            height: isHovering ? 60 : isClicking ? 20 : 36,
-            opacity: isClicking ? 0.8 : 0.4,
-          }}
-          transition={{ type: "spring", stiffness: 400, damping: 25 }}
-          className="rounded-full border border-cyan-400/50"
-          style={{ boxShadow: "0 0 15px rgba(14, 187, 255, 0.2)" }}
-        />
-      </motion.div>
-
-      {/* Inner dot */}
-      <motion.div
-        className="fixed top-0 left-0 pointer-events-none z-[9999] hidden md:block"
-        style={{
-          x: cursorX,
-          y: cursorY,
-          translateX: "-50%",
-          translateY: "-50%",
-          opacity: visible ? 1 : 0,
-        }}
-      >
-        <motion.div
-          animate={{
-            width: isClicking ? 10 : 6,
-            height: isClicking ? 10 : 6,
-            backgroundColor: isHovering ? "#0EBBFF" : "#ffffff",
-          }}
-          transition={{ type: "spring", stiffness: 500, damping: 25 }}
-          className="rounded-full"
-        />
-      </motion.div>
-    </>
-  );
+  // This decorates the system pointer. Never hide the native cursor.
+  return <motion.div aria-hidden="true" className="fixed top-0 left-0 pointer-events-none z-[9998]"
+    style={{ x: reduced ? cursorX : springX, y: reduced ? cursorY : springY, translateX: "-50%", translateY: "-50%", opacity: visible ? 1 : 0 }}>
+    <motion.div className="size-9 rounded-full border border-cyan-400/50"
+      animate={{ transform: `scale(${clicking ? .6 : hovering ? 1.5 : 1})`, opacity: hovering ? .7 : .4 }}
+      transition={{ duration: reduced ? 0 : .16 }}
+      style={{ boxShadow: "0 0 15px rgba(14,187,255,.2)" }}/>
+  </motion.div>;
 }
 
 // ═══ MAGNETIC TILT CARD ═══

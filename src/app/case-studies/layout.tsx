@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import styles from "./case-studies.module.css";
 
 /**
  * Case-study segment layout.
@@ -18,5 +20,5 @@ export const metadata: Metadata = {
 };
 
 export default function CaseStudiesLayout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>;
+  return <div className={styles.casePage}><aside className={styles.previewBar} aria-label="Publication status"><span><strong>Preview edition.</strong> Publication review is pending. These case studies are not indexed.</span><Link href="/projects">Browse public project stories</Link></aside>{children}</div>;
 }

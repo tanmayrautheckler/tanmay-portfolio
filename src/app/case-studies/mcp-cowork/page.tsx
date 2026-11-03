@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { ArrowRight, ArrowLeft, ChevronDown, ExternalLink } from "lucide-react";
-import { GithubIcon, LinkedinIcon } from "@/components/social-icons";
+import { ArrowRight, ChevronDown } from "lucide-react";
+import { ReadingGuide } from "@/components/case-studies/reading-guide";
+import { CSFooter } from "@/components/case-studies/cs-footer";
 import {
   META,
   HERO_NUMBER,
@@ -33,8 +33,9 @@ export const metadata: Metadata = {
 export default function MCPCoworkCaseStudy() {
   return (
     <article className="serif-prose-root">
+      <ReadingGuide items={[{ id: "overview", label: "Overview" }, { id: "workflow", label: "Workflow" }, { id: "toolkit", label: "Toolkit" }, { id: "artifacts", label: "Artifacts" }, { id: "outcomes", label: "Outcomes" }, { id: "lessons", label: "Lessons" }]} />
       {/* ═══ HERO ═══ */}
-      <section className="relative min-h-[92vh] flex flex-col justify-center px-6 md:px-12 lg:px-20">
+      <section id="overview" className="relative min-h-[92vh] flex flex-col justify-center px-6 md:px-12 lg:px-20">
         <div className="max-w-5xl mx-auto w-full">
           <p className="text-[11px] md:text-xs font-mono uppercase tracking-[0.25em] text-text-secondary mb-8 md:mb-12 flex items-center gap-3">
             <span className="w-8 h-px bg-text-secondary/40" />
@@ -77,7 +78,7 @@ export default function MCPCoworkCaseStudy() {
       </section>
 
       {/* ═══ SITUATION ═══ */}
-      <section className="px-6 md:px-12 lg:px-20 py-20 md:py-28 border-t border-border">
+      <section id="situation" className="px-6 md:px-12 lg:px-20 py-20 md:py-28 border-t border-border">
         <div className="max-w-4xl mx-auto">
           <p className="text-[11px] font-mono uppercase tracking-[0.25em] text-text-secondary mb-5">
             01 · Situation
@@ -94,7 +95,7 @@ export default function MCPCoworkCaseStudy() {
       </section>
 
       {/* ═══ PROBLEM + WORKFLOW BEFORE/AFTER ═══ */}
-      <section className="px-6 md:px-12 lg:px-20 py-20 md:py-28 border-t border-border bg-surface/40">
+      <section id="workflow" className="px-6 md:px-12 lg:px-20 py-20 md:py-28 border-t border-border bg-surface/40">
         <div className="max-w-5xl mx-auto">
           <p className="text-[11px] font-mono uppercase tracking-[0.25em] text-text-secondary mb-5">
             02 · Problem
@@ -116,7 +117,7 @@ export default function MCPCoworkCaseStudy() {
       </section>
 
       {/* ═══ MCP GRAPH + SERVERS ═══ */}
-      <section className="px-6 md:px-12 lg:px-20 py-20 md:py-28 border-t border-border">
+      <section id="toolkit" className="px-6 md:px-12 lg:px-20 py-20 md:py-28 border-t border-border">
         <div className="max-w-5xl mx-auto">
           <p className="text-[11px] font-mono uppercase tracking-[0.25em] text-text-secondary mb-5">
             03 · The toolkit
@@ -137,7 +138,7 @@ export default function MCPCoworkCaseStudy() {
       </section>
 
       {/* ═══ ARTIFACTS ═══ */}
-      <section className="px-6 md:px-12 lg:px-20 py-20 md:py-28 border-t border-border bg-surface/40">
+      <section id="artifacts" className="px-6 md:px-12 lg:px-20 py-20 md:py-28 border-t border-border bg-surface/40">
         <div className="max-w-5xl mx-auto">
           <p className="text-[11px] font-mono uppercase tracking-[0.25em] text-text-secondary mb-5">
             04 · Real work, shipped
@@ -156,7 +157,7 @@ export default function MCPCoworkCaseStudy() {
       </section>
 
       {/* ═══ DAY IN LIFE ═══ */}
-      <section className="px-6 md:px-12 lg:px-20 py-20 md:py-28 border-t border-border">
+      <section id="day" className="px-6 md:px-12 lg:px-20 py-20 md:py-28 border-t border-border">
         <div className="max-w-4xl mx-auto">
           <p className="text-[11px] font-mono uppercase tracking-[0.25em] text-text-secondary mb-5">
             05 · A day in the life
@@ -170,7 +171,7 @@ export default function MCPCoworkCaseStudy() {
       </section>
 
       {/* ═══ OUTCOMES ═══ */}
-      <section className="px-6 md:px-12 lg:px-20 py-20 md:py-28 border-t border-border bg-surface/40">
+      <section id="outcomes" className="px-6 md:px-12 lg:px-20 py-20 md:py-28 border-t border-border bg-surface/40">
         <div className="max-w-5xl mx-auto">
           <p className="text-[11px] font-mono uppercase tracking-[0.25em] text-text-secondary mb-5">
             06 · Outcomes
@@ -210,7 +211,7 @@ export default function MCPCoworkCaseStudy() {
       </section>
 
       {/* ═══ LESSONS ═══ */}
-      <section className="px-6 md:px-12 lg:px-20 py-20 md:py-28 border-t border-border">
+      <section id="lessons" className="px-6 md:px-12 lg:px-20 py-20 md:py-28 border-t border-border">
         <div className="max-w-5xl mx-auto">
           <p className="text-[11px] font-mono uppercase tracking-[0.25em] text-text-secondary mb-5">
             07 · Lessons
@@ -237,7 +238,7 @@ export default function MCPCoworkCaseStudy() {
       </section>
 
       {/* ═══ TEAM + STATUS ═══ */}
-      <section className="px-6 md:px-12 lg:px-20 py-20 md:py-28 border-t border-border bg-surface/40">
+      <section id="team" className="px-6 md:px-12 lg:px-20 py-20 md:py-28 border-t border-border bg-surface/40">
         <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16">
           <div>
             <p className="text-[11px] font-mono uppercase tracking-[0.25em] text-text-secondary mb-5">
@@ -264,81 +265,7 @@ export default function MCPCoworkCaseStudy() {
       </section>
 
       {/* ═══ FOOTER NAV ═══ */}
-      <footer className="px-6 md:px-12 lg:px-20 py-20 md:py-28 border-t border-border">
-        <div className="max-w-6xl mx-auto">
-          <p className="text-[11px] font-mono uppercase tracking-[0.25em] text-text-secondary mb-4">
-            Case study series
-          </p>
-          <h2 className="serif-display text-2xl md:text-4xl font-normal tracking-tight leading-[1.15] text-foreground max-w-2xl">
-            Three case studies. One ERP. One operator.
-          </h2>
-
-          <div className="mt-10 md:mt-14 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-            <Link
-              href="/case-studies/odoo-17"
-              className="border border-border rounded-lg p-6 md:p-8 hover:bg-surface-hover transition-colors group"
-            >
-              <p className="text-[10px] font-mono uppercase tracking-[0.2em] text-text-secondary mb-3">
-                Case study 01
-              </p>
-              <h3 className="serif-display text-lg md:text-xl tracking-tight text-foreground leading-tight group-hover:text-accent transition-colors">
-                65-Hour Zero-Loss Odoo 16 → 17 Cutover
-              </h3>
-              <p className="text-xs text-text-secondary serif-prose mt-2">
-                Preserving the platform that produces $250K+ in annual savings.
-              </p>
-            </Link>
-
-            <Link
-              href="/case-studies/vendor-portal"
-              className="border border-border rounded-lg p-6 md:p-8 hover:bg-surface-hover transition-colors group"
-            >
-              <p className="text-[10px] font-mono uppercase tracking-[0.2em] text-text-secondary mb-3">
-                Case study 02
-              </p>
-              <h3 className="serif-display text-lg md:text-xl tracking-tight text-foreground leading-tight group-hover:text-accent transition-colors">
-                Replaced an 8,441-Row Vendor Spreadsheet With a Live Portal
-              </h3>
-              <p className="text-xs text-text-secondary serif-prose mt-2">
-                Odoo as sole source of truth. Two front doors, one schema.
-              </p>
-            </Link>
-          </div>
-
-          <div className="mt-16 md:mt-20 pt-8 border-t border-border/60 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-            <Link
-              href="/case-studies"
-              className="inline-flex items-center gap-2 text-sm font-medium text-foreground hover:text-text-secondary transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              All case studies
-            </Link>
-            <div className="flex items-center gap-4 text-xs text-text-secondary">
-              <a
-                href="https://github.com/tanmayrautheckler"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 hover:text-foreground transition-colors"
-              >
-                <GithubIcon className="w-3.5 h-3.5" />
-                GitHub
-                <ExternalLink className="w-3 h-3 opacity-50" />
-              </a>
-              <span
-                className="inline-flex items-center gap-1.5 opacity-40 cursor-not-allowed"
-                title="LinkedIn link withheld until public publish is approved"
-              >
-                <LinkedinIcon className="w-3.5 h-3.5" />
-                LinkedIn
-              </span>
-            </div>
-          </div>
-
-          <p className="mt-10 text-[10px] font-mono uppercase tracking-[0.25em] text-text-secondary/40">
-            Preview · not indexed · sensitive details anonymized
-          </p>
-        </div>
-      </footer>
+      <CSFooter current="mcp-cowork" />
     </article>
   );
 }

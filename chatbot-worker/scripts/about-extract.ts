@@ -62,14 +62,16 @@ export const IDENTITY_CARDS: IdentityCard[] = [
 
 export const EDUCATION = [
   {
-    degree: "M.S. Information Technology",
+    degree: "M.S. Mechanical Engineering",
     school: "Arizona State University",
-    location: "Phoenix, AZ",
+    location: "Tempe, AZ",
+    gpa: "3.8",
   },
   {
-    degree: "B.E. Mechanical Engineering",
-    school: "University of Mumbai",
-    location: "Mumbai, India",
+    degree: "B.Tech Aeronautical Engineering (Minor: Mechanical)",
+    school: "Manipal Institute of Technology",
+    location: "India",
+    gpa: "3.5",
   },
 ];
 

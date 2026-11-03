@@ -2,24 +2,41 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { X, Send, User, MessageSquare, Bot } from "lucide-react";
+import { X, Send, User, Zap } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { useChat } from "@/hooks/use-chat";
+import { SplineCharacter } from "./spline-character";
+import { PikachuAvatar } from "./pikachu-avatar";
+import "./pikachu-chat.css";
 import { Button } from "@/components/ui/button";
 import { INPUT_PLACEHOLDER, SUGGESTED_PROMPTS } from "@/data/chatbot-context";
 
 export function AIChatbot() {
   const [isOpen, setIsOpen] = useState(false);
+  const [hovering, setHovering] = useState(false);
   const [input, setInput] = useState("");
-  const { messages, isLoading, sendMessage } = useChat();
+  const { messages, isLoading, error, sendMessage } = useChat();
   const reducedMotion = useReducedMotion();
   const messagesRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const launcherRef = useRef<HTMLButtonElement>(null);
+  const [position, setPosition] = useState<{ x: number; y: number } | null>(null);
+  const drag = useRef<{ id: number; x: number; y: number; left: number; top: number; moved: boolean } | null>(null);
+  const suppressClick = useRef(false);
+  const clampPosition = (x: number, y: number) => ({
+    x: Math.max(8, Math.min(x, window.innerWidth - (launcherRef.current?.offsetWidth ?? 220) - 8)),
+    y: Math.max(8, Math.min(y, window.innerHeight - (launcherRef.current?.offsetHeight ?? 100) - 8)),
+  });
+  useEffect(() => {
+    const resize = () => setPosition(previous => previous ? clampPosition(previous.x, previous.y) : null);
+    window.addEventListener("resize", resize);
+    return () => window.removeEventListener("resize", resize);
+  }, []);
 
   useEffect(() => {
     const container = messagesRef.current;
     if (!container) return;
+    if (messages.length === 0) { container.scrollTop = 0; return; }
     container.scrollTo({
       top: container.scrollHeight,
       behavior: reducedMotion ? "instant" : "smooth",
@@ -43,7 +60,7 @@ export function AIChatbot() {
   };
 
   return (
-    <div className="fixed bottom-4 left-3 z-50 md:bottom-5 md:left-5">
+    <div className="pika-chat fixed bottom-4 left-3 z-50 md:bottom-5 md:left-5" data-thinking={isLoading} data-open={isOpen} style={position ? { left: position.x, top: position.y, bottom: "auto" } : undefined}>
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -60,14 +77,14 @@ export function AIChatbot() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: reducedMotion ? 0 : 6 }}
             transition={{ duration: reducedMotion ? 0 : 0.18 }}
-            className="absolute bottom-14 left-0 flex max-h-[calc(100svh-7rem)] w-[calc(100vw-1.5rem)] max-w-96 flex-col overflow-hidden rounded-2xl border border-border bg-background shadow-2xl"
+            className="fixed bottom-32 left-3 md:left-5 flex max-h-[calc(100svh-12rem)] w-[calc(100vw-1.5rem)] max-w-96 flex-col overflow-hidden rounded-2xl border border-border bg-background shadow-2xl"
           >
             <div className="flex shrink-0 items-center justify-between border-b border-border px-4 py-3">
               <div className="flex items-center gap-3">
-                <MessageSquare className="size-4 text-text-secondary" aria-hidden="true" />
+                <span className="pika-header-avatar"><PikachuAvatar size={45} active={isLoading}/></span>
                 <div>
-                  <div id="portfolio-assistant-title" className="text-sm font-semibold text-foreground">Ask about Tanmay</div>
-                  <div className="mt-0.5 text-xs text-text-secondary">AI assistant for my work and projects</div>
+                  <div id="portfolio-assistant-title" className="text-sm font-semibold text-foreground">Pikachu’s corner</div>
+                  <div className="mt-0.5 text-xs text-text-secondary">{isLoading ? "Thinking about your question…" : "Tanmay’s little AI sidekick"}</div>
                 </div>
               </div>
               <Button variant="ghost" size="icon" onClick={closeChat} aria-label="Close assistant">
@@ -77,9 +94,9 @@ export function AIChatbot() {
 
             <div ref={messagesRef} className="h-72 min-h-0 space-y-3 overflow-y-auto overscroll-contain p-4" role="log" aria-label="Conversation" aria-live="polite" aria-relevant="additions text">
               {messages.length === 0 && (
-                <div className="py-3">
+                <div className="pika-welcome py-3"><span className="pika-welcome-kicker"><Zap size={12}/> A LITTLE SPARK OF CURIOSITY</span>
                   <p className="text-sm leading-relaxed text-text-secondary">
-                    Curious about a project or how I work? Start here.
+                    Pika! Curious about Tanmay? I can help you explore his projects, experience, and the things he builds.
                   </p>
                   <div className="mt-4 flex flex-col items-start gap-2">
                     {SUGGESTED_PROMPTS.map((question) => (
@@ -100,7 +117,7 @@ export function AIChatbot() {
               {messages.map((message, index) => (
                 <div key={index} className={`flex gap-2 ${message.role === "user" ? "justify-end" : "justify-start"}`}>
                   {message.role === "assistant" && (
-                    <Bot className="mt-2 size-4 shrink-0 text-text-secondary" aria-hidden="true" />
+                    <span className="mt-1 shrink-0"><PikachuAvatar size={25}/></span>
                   )}
                   <div className={`max-w-[85%] rounded-xl border px-3 py-2 text-sm ${message.role === "user" ? "rounded-br-sm border-transparent bg-foreground text-background" : "rounded-bl-sm border-border bg-surface-hover text-foreground"}`}>
                     {message.role === "user" ? message.content : (
@@ -121,9 +138,10 @@ export function AIChatbot() {
                 </div>
               ))}
 
-              {isLoading && <p role="status" className="pl-6 text-xs text-text-secondary">Writing a reply…</p>}
+              {isLoading && <div role="status" className="pika-thinking"><PikachuAvatar size={28} active/><span>Pikachu is thinking<i/><i/><i/></span></div>}
             </div>
 
+            {error && <p role="alert" className="pika-connection-note">Chat connection unavailable. <a href="/contact">Contact Tanmay directly <span aria-hidden="true">↗</span></a></p>}
             <form onSubmit={handleSubmit} className="flex shrink-0 gap-2 border-t border-border p-3">
               <input
                 ref={inputRef}
@@ -144,14 +162,47 @@ export function AIChatbot() {
 
       <Button
         ref={launcherRef}
-        variant="outline"
-        onClick={() => { if (isOpen) closeChat(); else setIsOpen(true); }}
+        variant="ghost"
+        onMouseEnter={() => setHovering(true)}
+        onMouseLeave={() => setHovering(false)}
+        onFocus={() => setHovering(true)}
+        onBlur={() => setHovering(false)}
+        title="Drag to move · Click to chat · Arrow keys to move"
+        onPointerDown={(event) => {
+          if (event.button !== 0) return;
+          const rect = event.currentTarget.getBoundingClientRect();
+          suppressClick.current = false;
+          drag.current = { id: event.pointerId, x: event.clientX, y: event.clientY, left: rect.left, top: rect.top, moved: false };
+          event.currentTarget.setPointerCapture(event.pointerId);
+        }}
+        onPointerMove={(event) => {
+          const start = drag.current;
+          if (!start || start.id !== event.pointerId) return;
+          const dx = event.clientX - start.x, dy = event.clientY - start.y;
+          if (!start.moved && Math.hypot(dx, dy) < 6) return;
+          start.moved = true;
+          suppressClick.current = true;
+          setPosition(clampPosition(start.left + dx, start.top + dy));
+        }}
+        onPointerUp={() => { drag.current = null; }}
+        onPointerCancel={() => { drag.current = null; suppressClick.current = true; }}
+        onLostPointerCapture={() => { drag.current = null; }}
+        onKeyDown={(event) => {
+          const delta = { ArrowLeft: [-20, 0], ArrowRight: [20, 0], ArrowUp: [0, -20], ArrowDown: [0, 20] }[event.key];
+          if (!delta) return;
+          event.preventDefault();
+          const rect = event.currentTarget.getBoundingClientRect();
+          setPosition(clampPosition(rect.left + delta[0], rect.top + delta[1]));
+        }}
+        onClick={(event) => { if (suppressClick.current && event.detail !== 0) { suppressClick.current = false; return; } if (isOpen) closeChat(); else setIsOpen(true); }}
+        aria-label={isOpen ? "Close Pikachu chat" : "Chat with Pikachu about Tanmay"}
         aria-expanded={isOpen}
         aria-controls={isOpen ? "portfolio-assistant" : undefined}
-        className="h-10 gap-2 rounded-full bg-background/95 px-3.5 text-xs text-foreground shadow-sm backdrop-blur-md sm:h-11 sm:px-4 sm:text-sm dark:bg-background/95"
+        className="pika-launcher"
       >
-        {isOpen ? <X aria-hidden="true" /> : <MessageSquare aria-hidden="true" />}
-        {isOpen ? "Close assistant" : "Ask about my work"}
+        <span className="pika-launcher-character"><SplineCharacter size={94} state={isLoading || hovering || isOpen ? "talking" : "idle"}/></span>
+        <span className="pika-launcher-label">{isOpen ? "See you here!" : isLoading ? "Thinking…" : "Pika! Ask me"}<small>{isOpen ? "Click to tuck me away" : "Drag me · Click to chat"}</small></span>
+        <span className="pika-launcher-spark" aria-hidden="true"><Zap size={12}/></span>
       </Button>
     </div>
   );

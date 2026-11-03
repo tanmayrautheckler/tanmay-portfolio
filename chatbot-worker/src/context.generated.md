@@ -23,8 +23,8 @@ Tanmay Raut looks after ERP and business systems at Heckler Design in Phoenix. H
 
 ### Education
 
-- M.S. Information Technology, Arizona State University (Phoenix, AZ)
-- B.E. Mechanical Engineering, University of Mumbai (Mumbai, India)
+- M.S. Mechanical Engineering, Arizona State University (Tempe, AZ; GPA 3.8)
+- B.Tech Aeronautical Engineering (Minor: Mechanical), Manipal Institute of Technology (India; GPA 3.5)
 
 ### Certifications
 
@@ -133,6 +133,7 @@ Managed pressure vessel fabrication for 30+ personnel under ASME Section VIII an
 - Shopify Connector — Proficient (75%)
 - ShipStation — Proficient (70%)
 - Stripe Payment Gateway — Proficient (70%)
+- Stripe Tax: Custom Odoo Provider Module — Proficient (70%)
 - Avalara/AvaTax — Proficient (65%)
 - Slack & Ramp — Proficient (65%)
 
@@ -152,7 +153,7 @@ Managed pressure vessel fabrication for 30+ personnel under ASME Section VIII an
 
 ## Projects
 
-Tanmay has shipped 20 projects across manufacturing operations, ERP, integrations, AI, and data dashboards. Featured projects have full case studies; the rest are summarized below.
+Tanmay's portfolio includes 25 projects across manufacturing operations, ERP, integrations, AI, data dashboards, personal prototypes and academic work. Featured projects have full case studies; the rest are summarized below.
 
 
 ### Featured projects
@@ -213,6 +214,46 @@ Metrics: Time to Answer: ~5s; MCP Tools: 12; Deployment: Org-wide; Models Access
 ### Additional projects
 
 
+#### The business behind the storefront (2026)
+**Category:** Integrations
+**Description:** My work on Heckler's shared business platform connects dealer ordering, manufacturing, purchasing, returns and reporting. Contributions are merged into the codebase, with rollout managed by feature.
+**Tech:** Next.js, TypeScript, Odoo, Shopify, Clerk
+**Problem:** An order touches far more than a checkout. Dealers need quotes and documents, planners need parts and capacity, and staff need a clear way to handle changes and returns.
+**Role:** Translated operational needs into workflows and contributed to their design, implementation and refinement within a shared team codebase, using AI coding tools throughout the build.
+**Solution:** Connected dealer quotes, manufacturing queues, material-aware delivery estimates, purchasing actions, business reporting and return approvals to the underlying operational records.
+**Impact:** Dealer workspace brings quotes, documents and order conversations together; Planning views connect shipment risk, build priorities, people and stations; Lead-time calculations account for components, production work and order quantity; Returns move through review and approval before creating an ERP return
+
+
+#### Every handoff needs a next step (2026)
+**Category:** Operations
+**Description:** Company work across customer returns, tax, timekeeping and manufacturing capacity in Odoo 19. These contributions are part of Heckler's production branch.
+**Tech:** Odoo 19, Python, OWL, PostgreSQL, Stripe Tax
+**Problem:** Operational work keeps moving after someone changes a status. A partial return still needs another receipt, a corrected time punch needs consistent totals, and a purchasing edit must preserve the agreed price.
+**Role:** Defined operational rules and contributed their implementation and follow-up fixes with AI coding tools, connecting warehouse, manufacturing, accounting and staff workflows.
+**Solution:** Extended Odoo workflows for receiving and inspecting customer returns, accounting handoffs, external tax calculation, attendance corrections, payroll exports and capacity planning.
+**Impact:** Customer returns carry inspection decisions through to inventory and accounting; Attendance corrections propagate into activity records and reports; Capacity dashboards calculate workload and shortages from manufacturing records; Confirmed purchase orders preserve agreed prices when quantity changes
+
+
+#### Tanmay Trading System (2026)
+**Category:** Data & Dashboards
+**Description:** A personal market research system with a 13-view React dashboard, Python scanners, eight-lens company research, portfolio risk checks and a daily briefing workflow.
+**Tech:** Python, FastAPI, React, Market Data, Historical Simulation
+**Problem:** Following markets meant piecing together prices, headlines, watchlists, position records and research. I wanted a repeatable review that could explain why something deserved attention, show what had changed and flag missing or unreliable inputs.
+**Role:** Designed and built the research workflow with AI coding tools, connecting the dashboard, data collection, analysis, record keeping and operational checks. Iterated on the rules and the failure cases as the system grew.
+**Solution:** Built a React application backed by FastAPI and a Python research engine. Scanners feed candidates into a watchlist and deeper research. The morning workflow brings those findings together with alerts, risk-adjusted action items, market context and a saved briefing. Separate tools handle historical simulations and validation.
+**Impact:** 13 application views connect research, scans, news, actions, records and market context; Eight research lenses produce a report with the reasoning behind its verdict; Morning workflow brings scanner candidates, watchlists, alerts and risk checks together; Historical simulations include position sizing, slippage, stops and exit rules; Health checks surface stale inputs, missing logs and failed background jobs
+
+
+#### Help nearby. Reassurance from afar. (2026)
+**Category:** Operations
+**Description:** NeighbourHelper is a mobile prototype exploring how families, older adults and local volunteers could coordinate everyday help. Built with mock data and local state, without a backend.
+**Tech:** Expo, React Native, TypeScript, Local State
+**Problem:** When family lives far away, a small everyday task can be difficult to arrange. The person asking, the person helping and the relative checking in each need a different view of the same request.
+**Role:** Developed the concept and role-based prototype with AI coding tools, exploring how a care request could move between family, volunteer and older-adult screens.
+**Solution:** Created separate app journeys for family, volunteers, older adults and administrators. Local task state supports requests, applications, progress and completion, with simulated points and hours.
+**Impact:** Prototype makes each participant's view of a request tangible; Local task flow connects a family request to volunteer progress; Larger controls explore a simpler experience for older adults; Mock data allows exploration without involving real care recipients
+
+
 #### C-SKU Cut Parts Program (2024)
 **Category:** Manufacturing
 **Description:** Complete ERP implementation for transitioning corrugated packaging and felt cutting production in-house with 35+ component SKUs.
@@ -251,6 +292,16 @@ Metrics: Time to Answer: ~5s; MCP Tools: 12; Deployment: Org-wide; Models Access
 **Role:** Configured all native Odoo pieces. Developer built the custom connector code to my specifications.
 **Solution:** Created variant-based product structures so configured orders from Shopify trigger the right MO with correct materials and costs.
 **Impact:** Automated MO generation from website orders; Correct material allocation per variant; Accurate cost calculation for configured products
+
+
+#### Stripe Tax for Odoo 19 (2026)
+**Category:** Finance
+**Description:** A custom Odoo external-tax provider module I built to connect Stripe Tax with orders, invoices and refunds. It handles exemption decisions, freight, recalculation and the tax transaction lifecycle.
+**Tech:** Odoo 19, Python, Stripe Tax API, Odoo Accounting
+**Problem:** Tax needs to stay consistent as an order changes, becomes an invoice or is partially refunded. Exempt orders, freight and credit notes each introduce rules that a payment gateway alone does not handle.
+**Role:** Built the Stripe Tax provider module for Odoo 19 and defined its business behavior, using AI coding tools for implementation and iterative fixes across orders, invoices and refunds.
+**Solution:** Created the external-tax provider and Stripe client, connected tax calculation and recalculation to sales and accounting documents, and added transaction posting and refund behavior. Refined exemption inheritance and freight handling, including freight-only invoices.
+**Impact:** Stripe Tax calculation integrated into Odoo sales and accounting documents; Credit notes inherit exemption decisions from their linked orders; Goods and freight follow the relevant tax treatment, including freight-only invoices; Tax transactions and refunds follow the invoice lifecycle
 
 
 #### Stripe Payment Integration (2024)
@@ -320,7 +371,7 @@ Metrics: Time to Answer: ~5s; MCP Tools: 12; Deployment: Org-wide; Models Access
 **Problem:** Running on Odoo 16 with accumulating technical debt. Needed to upgrade without disrupting operations.
 **Role:** Coordinated the offshore team, testing, UAT and department training. Owned the follow-up and issue resolution after the upgrade.
 **Solution:** Managed the full upgrade lifecycle: pre-upgrade audit, module compatibility testing, data migration, staged rollout, and monitoring.
-**Impact:** Minimal operational disruption; All modules tested end-to-end; Hands-on training to all departments; Resulted in significant raise ($91K → $105K + bonus)
+**Impact:** Minimal operational disruption; All modules tested end-to-end; Hands-on training to all departments
 
 
 #### RMA Workflow System (2024)

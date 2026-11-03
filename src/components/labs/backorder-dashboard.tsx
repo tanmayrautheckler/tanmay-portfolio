@@ -11,7 +11,7 @@
  *   Toolbar → Metric strip → Charts → Table
  */
 
-import { useEffect, useRef, useState, useMemo } from "react";
+import { Fragment, useEffect, useRef, useState, useMemo } from "react";
 import { useIsMobile } from "./use-is-mobile";
 import {
   Chart,
@@ -359,6 +359,9 @@ export function BackorderDashboard() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const mk = (canvas: HTMLCanvasElement | null, cfg: any) => {
       if (!canvas) return;
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        cfg.options = { ...cfg.options, animation: false };
+      }
       chartInstances.current.push(new Chart(canvas, cfg));
     };
 
@@ -580,7 +583,8 @@ export function BackorderDashboard() {
   const toggleRow = (o: string) =>
     setExpanded((prev) => {
       const next = new Set(prev);
-      next.has(o) ? next.delete(o) : next.add(o);
+      if (next.has(o)) next.delete(o);
+      else next.add(o);
       return next;
     });
 
@@ -621,13 +625,14 @@ export function BackorderDashboard() {
         </div>
 
         <input
+          aria-label="Search sales orders, customers or representatives"
           placeholder="Search SO / customer / rep…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           style={{ padding: "5px 10px", border: `1px solid ${HK.border}`, borderRadius: 6, fontSize: 12, background: HK.white, color: HK.text, width: 200, outline: "none" }}
         />
 
-        <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}
+        <select aria-label="Filter orders by status" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}
           style={{ padding: "5px 8px", border: `1px solid ${HK.border}`, borderRadius: 6, fontSize: 12, background: HK.white, color: HK.text }}>
           <option value="all">All Status</option>
           <option value="ready">Ready</option>
@@ -636,12 +641,18 @@ export function BackorderDashboard() {
           <option value="wts">WTS</option>
         </select>
 
-        <select value={filterChan} onChange={(e) => setFilterChan(e.target.value)}
+        <select aria-label="Filter orders by sales channel" value={filterChan} onChange={(e) => setFilterChan(e.target.value)}
           style={{ padding: "5px 8px", border: `1px solid ${HK.border}`, borderRadius: 6, fontSize: 12, background: HK.white, color: HK.text }}>
           <option value="all">All Channels</option>
           <option value="1">DTC</option>
           <option value="9">Dealer</option>
           <option value="8">Distributor</option>
+        </select>
+
+        <select aria-label="Filter orders by product category" value={filterCat} onChange={(e) => setFilterCat(e.target.value)}
+          style={{ padding: "5px 8px", border: `1px solid ${HK.border}`, borderRadius: 6, fontSize: 12, background: HK.white, color: HK.text }}>
+          <option value="all">All Categories</option>
+          {Object.keys(CAT_COLORS).map((category) => <option key={category} value={category}>{category}</option>)}
         </select>
 
         <button onClick={exportCSV}
@@ -725,9 +736,9 @@ export function BackorderDashboard() {
                   {(["o","c","d","ps","age","v","m","ch","sp"] as (keyof BO)[]).map((k) => {
                     const labels: Record<string, string> = { o:"SO#", c:"Customer", d:"Commit", ps:"Status", age:"Age", v:"Value", m:"Margin", ch:"Channel", sp:"Rep" };
                     return (
-                      <th key={k} onClick={() => toggleSort(k)}
+                      <th key={k} aria-sort={sortKey === k ? sortDir === "asc" ? "ascending" : "descending" : "none"}
                         style={{ padding: "8px 12px", textAlign: "left", fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap", userSelect: "none", color: sortKey === k ? HK.cta : HK.textSub }}>
-                        {labels[k]}{sortKey === k ? (sortDir === "asc" ? " ↑" : " ↓") : ""}
+                        <button onClick={() => toggleSort(k)} style={{ background: "transparent", color: "inherit", font: "inherit", textAlign: "left" }}>{labels[k]}{sortKey === k ? (sortDir === "asc" ? " ↑" : " ↓") : ""}</button>
                       </th>
                     );
                   })}
@@ -736,13 +747,13 @@ export function BackorderDashboard() {
               </thead>
               <tbody>
                 {rows.map((r) => (
-                  <>
+                  <Fragment key={r.o}>
                     <tr key={r.o}
                       onClick={() => toggleRow(r.o)}
                       style={{ borderBottom: `1px solid ${HK.border}`, cursor: "pointer", background: expanded.has(r.o) ? HK.band : "transparent" }}
                       onMouseEnter={(e) => { if (!expanded.has(r.o)) (e.currentTarget as HTMLElement).style.background = HK.band; }}
                       onMouseLeave={(e) => { if (!expanded.has(r.o)) (e.currentTarget as HTMLElement).style.background = "transparent"; }}>
-                      <td style={{ padding: "9px 12px", fontWeight: 600, color: HK.cta }}>{r.o}</td>
+                      <td style={{ padding: "9px 12px", fontWeight: 600, color: HK.cta }}><button aria-expanded={expanded.has(r.o)} aria-label={`Show line items for ${r.o}`} onClick={(event) => { event.stopPropagation(); toggleRow(r.o); }} style={{ background: "transparent", color: "inherit", font: "inherit" }}>{r.o}</button></td>
                       <td style={{ padding: "9px 12px", maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.c}</td>
                       <td style={{ padding: "9px 12px", whiteSpace: "nowrap" }}>
                         <span style={{ color: r.ov ? HK.error : HK.text }}>{fmtDate(r.d)}</span>
@@ -800,7 +811,7 @@ export function BackorderDashboard() {
                         </td>
                       </tr>
                     )}
-                  </>
+                  </Fragment>
                 ))}
               </tbody>
             </table>

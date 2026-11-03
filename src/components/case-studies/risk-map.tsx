@@ -36,7 +36,7 @@ export function RiskMap() {
   const reduced = useReducedMotion();
 
   return (
-    <section ref={ref} className="px-6 md:px-12 lg:px-20 py-24 md:py-36 bg-surface-hover/40">
+    <section id="decisions" ref={ref} className="px-6 md:px-12 lg:px-20 py-24 md:py-36 bg-surface-hover/40">
       <div className="max-w-6xl mx-auto">
         {/* Heading */}
         <div className="max-w-2xl mb-12 md:mb-16">

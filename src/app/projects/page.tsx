@@ -1,171 +1,59 @@
-"use client";
-
-/**
- * /projects — curated front page.
- * Only 3 featured projects, magazine-cover treatment.
- * Stats strip, bridge to /projects/archive for the rest.
- */
-
+import type { Metadata } from "next";
 import Link from "next/link";
-import { motion, useInView, useReducedMotion } from "framer-motion";
-import { useRef, useEffect, useState } from "react";
-import { ChevronRight } from "lucide-react";
-import { FeaturedProject } from "@/components/projects/featured-project";
+import { ArrowDown, ArrowRight, ArrowUpRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ProjectVisual } from "@/components/projects/project-visual";
 import { projects } from "@/data/projects";
+import styles from "@/components/projects/work.module.css";
 
-const featured = projects.filter((p) => p.featured);
-const archived = projects.filter((p) => !p.featured);
-
-const STATS = [
-  { label: "Projects explored", value: projects.length },
-  { label: "Featured deep-dives", value: featured.length },
-  { label: "Years active", value: 8 }, // 2018 → 2026
-  { label: "Categories", value: 7 },
-];
-
-function StatNumber({ target }: { target: number }) {
-  const ref = useRef<HTMLSpanElement>(null);
-  const inView = useInView(ref, { once: true, margin: "-40px" });
-  const [v, setV] = useState(target);
-  const reduced = useReducedMotion();
-
-  useEffect(() => {
-    if (!inView || reduced) return;
-    const start = performance.now();
-    const duration = 1100;
-    let raf = 0;
-    const tick = (now: number) => {
-      const p = Math.min(1, (now - start) / duration);
-      const eased = 1 - Math.pow(1 - p, 3);
-      setV(Math.floor(eased * target));
-      if (p < 1) raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(() => {
-      setV(0);
-      raf = requestAnimationFrame(tick);
-    });
-    return () => cancelAnimationFrame(raf);
-  }, [inView, target, reduced]);
-
-  return <span ref={ref}>{v}</span>;
-}
+export const metadata: Metadata = {
+  title: "Selected work | Tanmay Raut",
+  description: "The problems, decisions and implementation behind Tanmay Raut’s business systems and personal projects.",
+};
+const featured = projects.filter((project) => project.featured);
+const personal = projects.filter((project) => ["trading-research-desk", "neighbourhelper"].includes(project.slug));
 
 export default function ProjectsPage() {
   return (
-    <article className="serif-prose-root pb-24">
-      {/* ═══ EDITORIAL HEADER ═══ */}
-      <section className="px-6 md:px-12 lg:px-20 py-20 md:py-28">
-        <div className="max-w-6xl mx-auto">
-          <motion.p
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7 }}
-            className="text-[11px] font-mono uppercase tracking-[0.3em] text-accent mb-5 flex items-center gap-3"
-          >
-            <span className="w-8 h-px bg-accent/40" />
-            Selected work
-          </motion.p>
-
-          <motion.h1
-            initial={{ opacity: 0, y: 18 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-            className="serif-display text-5xl md:text-7xl lg:text-8xl font-normal tracking-tight leading-[0.95] text-foreground max-w-4xl"
-          >
-            The thinking behind recent builds.
-          </motion.h1>
-
-          <motion.p
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
-            className="mt-8 md:mt-10 serif-prose text-lg md:text-xl text-text-secondary max-w-3xl leading-[1.7]"
-          >
-            Here’s what needed fixing, what I was responsible for and how we approached it.
-            Open a case study for the decisions and tradeoffs, or browse the archive for more projects.
-          </motion.p>
-
-          {/* Stats strip */}
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
-            className="mt-12 md:mt-16 grid grid-cols-2 md:grid-cols-4 gap-y-6 gap-x-8 border-t border-border pt-8"
-          >
-            {STATS.map((s) => (
-              <div key={s.label}>
-                <p className="serif-display text-3xl md:text-4xl font-normal text-foreground leading-none tabular-nums">
-                  <StatNumber target={s.value} />
-                </p>
-                <p className="text-[11px] font-mono uppercase tracking-widest text-text-secondary mt-2">
-                  {s.label}
-                </p>
-              </div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ═══ FEATURED 3 ═══ */}
-      <section className="px-6 md:px-12 lg:px-20">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
-            {featured.map((p, i) => (
-              <div key={p.slug} className={i === 0 ? "lg:col-span-2" : ""}>
-                <FeaturedProject project={p} index={i} />
-              </div>
-            ))}
+    <article className={styles.work}>
+      <header className={styles.indexHero}>
+        <div>
+          <p className={styles.eyebrow}>The project files / Selected work</p>
+          <h1>Behind every screen,<br /><em>there’s a process.</em></h1>
+          <p className={styles.lead}>The work starts with people trying to get something done. Here are the systems I’ve built around them, the decisions along the way and my part in each.</p>
+          <div className={styles.heroActions}>
+            <Button asChild size="lg" className={styles.primaryButton}><a href="#selected">Explore the work <ArrowDown /></a></Button>
+            <Button asChild size="lg" variant="ghost"><Link href="/projects/archive">All {projects.length} projects <ArrowUpRight /></Link></Button>
           </div>
         </div>
-      </section>
-
-      {/* ═══ ARCHIVE BRIDGE ═══ */}
-      <section className="px-6 md:px-12 lg:px-20 mt-20 md:mt-28">
-        <div className="max-w-6xl mx-auto">
-          <Link
-            href="/projects/archive"
-            className="group block relative overflow-hidden rounded-3xl border border-border hover:border-accent/40 transition-colors p-8 md:p-12"
-            style={{
-              background:
-                "linear-gradient(135deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0) 100%)",
-            }}
-          >
-            <div className="relative grid grid-cols-1 md:grid-cols-[1fr_auto] items-center gap-6">
-              <div>
-                <p className="text-[11px] font-mono uppercase tracking-[0.3em] text-accent mb-3">
-                  More work
-                </p>
-                <h3 className="serif-display text-3xl md:text-5xl font-normal tracking-tight leading-tight text-foreground max-w-2xl">
-                  {archived.length} more in the archive.
-                </h3>
-                <p className="serif-prose text-base text-text-secondary mt-4 max-w-xl leading-[1.7]">
-                  Business systems, trading research, community-care prototypes and academic
-                  projects. Browse the work by year, with context on what each project does.
-                </p>
-              </div>
-              <motion.div
-                className="flex items-center gap-3 text-sm font-mono uppercase tracking-widest text-foreground shrink-0"
-                whileHover={{ gap: "20px" }}
-                transition={{ duration: 0.25 }}
-              >
-                Browse archive
-                <ChevronRight className="w-5 h-5" />
-              </motion.div>
+        <aside className={styles.contentsCard} aria-label="Selected project shortcuts">
+          <p className={styles.eyebrow}>Three places to start</p>
+          {featured.map((project, index) => <a key={project.slug} href={`#${project.slug}`}><span>0{index + 1}</span><strong>{project.title}</strong><ArrowDown size={16} /></a>)}
+          <p>Business systems, from the first question to the details that make them work.</p>
+        </aside>
+      </header>
+      <section id="selected" aria-labelledby="selected-heading" className={styles.selected}>
+        <div className={styles.sectionHeading}><h2 id="selected-heading">Selected work</h2><span>{String(featured.length).padStart(2, "0")} detailed project stories</span></div>
+        {featured.map((project, index) => (
+          <article className={styles.feature} id={project.slug} key={project.slug}>
+            <Link href={`/projects/${project.slug}`} className={styles.visualLink} aria-label={`Read ${project.title}`}><ProjectVisual project={project} /></Link>
+            <div className={styles.featureCopy}>
+              <p className={styles.eyebrow}><span>0{index + 1}</span> / {project.category} / {project.date}</p>
+              <h3><Link href={`/projects/${project.slug}`}>{project.title}</Link></h3><p>{project.description}</p>
+              <div className={styles.contribution}><span>My contribution</span><p>{project.role}</p></div>
+              <Link className={styles.textLink} href={`/projects/${project.slug}`}>Inside the project <ArrowRight size={18} /></Link>
             </div>
-
-            {/* Decorative timeline strip */}
-            <div className="absolute right-8 top-1/2 -translate-y-1/2 hidden md:flex flex-col gap-1.5 pointer-events-none opacity-30 group-hover:opacity-60 transition-opacity">
-              {[...new Set(archived.map((p) => p.date.match(/20\d{2}/)?.[0]).filter(Boolean))]
-                .sort()
-                .map((y) => (
-                  <span key={y} className="text-[9px] font-mono text-text-secondary tabular-nums">
-                    {y}
-                  </span>
-                ))}
-            </div>
-          </Link>
-        </div>
+          </article>
+        ))}
       </section>
+      <section className={styles.personal} aria-labelledby="personal-heading">
+        <div className={styles.sectionHeading}><h2 id="personal-heading">After hours</h2><span>Personal research & experiments</span></div>
+        <div className={styles.personalGrid}>{personal.map((project) => <Link href={`/projects/${project.slug}`} className={styles.personalProject} key={project.slug}>
+          <span className={styles.eyebrow}>{project.slug === "trading-research-desk" ? "Research system" : "Community-care prototype"}</span>
+          <h3>{project.title}</h3><p>{project.description}</p><span className={styles.textLink}>Read the project <ArrowUpRight size={18} /></span>
+        </Link>)}</div>
+      </section>
+      <Link href="/projects/archive" className={styles.archiveBridge}><div><p className={styles.eyebrow}>The complete collection</p><h2>There’s more in the archive.</h2><p>{projects.length} projects. Search by topic, technology or year.</p></div><ArrowUpRight size={42} strokeWidth={1} /></Link>
     </article>
   );
 }

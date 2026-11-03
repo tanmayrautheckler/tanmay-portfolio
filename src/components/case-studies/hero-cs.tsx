@@ -8,7 +8,7 @@ export function HeroCS() {
   const reduced = useReducedMotion();
 
   return (
-    <section className="relative min-h-[92vh] flex flex-col justify-center px-6 md:px-12 lg:px-20">
+    <section id="overview" className="relative min-h-[92vh] flex flex-col justify-center px-6 md:px-12 lg:px-20">
       <div className="max-w-5xl mx-auto w-full">
         {/* Role / Date eyebrow */}
         <motion.p

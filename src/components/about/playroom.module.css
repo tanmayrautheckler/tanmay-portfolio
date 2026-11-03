@@ -1,0 +1,34 @@
+.playroom { --game-green:#d5e5b9; --game-ink:#173b2c; gap:22px; }
+.gameTabs { width:100%; justify-content:flex-start; gap:24px; height:auto!important; padding:0 0 12px; border-bottom:1px solid var(--border); }
+.gameTabs button { flex:none; gap:8px; min-height:40px; padding:0 2px; font-size:14px; }
+.game { border:1px solid var(--border); border-radius:12px; overflow:hidden; background:var(--surface); }
+.gameTop { display:flex; align-items:center; justify-content:space-between; gap:20px; padding:26px 30px; }
+.eyebrow { font:10px ui-monospace,monospace; text-transform:uppercase; letter-spacing:.12em; color:var(--text-secondary); }
+.gameTop h3 { font-size:clamp(21px,3vw,30px); line-height:1.2; margin-top:8px; letter-spacing:-.03em; }
+.score { text-align:right; flex-shrink:0; }
+.score strong { display:block; font-size:32px; line-height:1.2; font-variant-numeric:tabular-nums; font-weight:500; }
+.score strong span { font-size:17px; color:var(--text-secondary); }
+.score > span { font:10px ui-monospace,monospace; color:var(--text-secondary); }
+.pitch { position:relative; background:#183c33; color:#edf0df; }
+.pitch svg { width:100%; display:block; max-height:320px; }
+.shotDots { position:absolute; top:14px; right:20px; z-index:1; display:flex; gap:6px; }
+.shotDots span { height:23px; width:23px; border:1px solid #c7d8c648; display:grid; place-items:center; border-radius:50%; font:10px ui-monospace,monospace; color:#d6e5d2; }
+.shotDots span[data-result="goal"] { background:#d5e5b9; color:#173b2c; }
+.shotDots span[data-result="saved"],.shotDots span[data-result="over"] { background:#c38c6a; color:#132a20; }
+.gameControls { padding:24px 30px; }
+.settings { display:grid; grid-template-columns:1fr 1fr; gap:32px; }
+.settings label>span,.controlLabel { display:flex; align-items:center; gap:8px; font-size:12px; margin-bottom:12px; }
+.settings small { margin-left:auto; font:10px ui-monospace,monospace; color:var(--text-secondary); }
+.settings input[type="range"] { width:100%; accent-color:#8ba277; cursor:pointer; display:block; height:18px; }
+.powerTrack { position:relative; height:8px; margin:18px 0 10px; background:linear-gradient(90deg,#566656 0 35%,#9b9a63 35% 55%,#779b63 55% 80%,#9b9a63 80% 90%,#ac7259 90%); border-radius:2px; }
+.sweetSpot { position:absolute; left:55%; width:25%; height:14px; top:-3px; border:1px solid #bed2a0; border-radius:2px; }
+.powerMarker { position:absolute; width:3px; height:21px; background:var(--foreground); top:-7px; transform:translateX(-50%); box-shadow:0 0 0 1px var(--background); }
+.feedback { min-height:44px; font-size:14px; line-height:1.6; margin:22px 0 12px; }
+.gameActions { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.primary { min-height:42px; padding:0 18px; border-radius:4px; background:var(--game-green); color:var(--game-ink); }
+.primary:hover { background:#e3edcf; }
+.practice { display:flex; align-items:center; gap:8px; margin-left:auto; font-size:11px; color:var(--text-secondary); }
+.practice input { accent-color:#879e73; width:15px; height:15px; }
+.hint { font-size:11px; color:var(--text-secondary); line-height:1.7; margin-top:16px; }
+.game button:focus-visible,.game input:focus-visible { outline:2px solid var(--accent); outline-offset:4px; }
+@media(max-width:600px){.gameTop,.gameControls { padding:20px 16px; }.score strong { font-size:25px; }.gameTabs { gap:16px; }.gameTabs button { font-size:12px; }.settings { gap:20px; }.settings label>span,.controlLabel { flex-wrap:wrap; }.settings small { width:100%; margin:0; }.gameActions { row-gap:16px; }.practice { width:100%; margin-left:0; }.shotDots { top:8px; right:12px; }.shotDots span { width:18px; height:18px; font-size:9px; }}
