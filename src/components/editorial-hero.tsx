@@ -15,6 +15,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion, useScroll, useTransform, useMotionValue, useSpring, useReducedMotion } from "framer-motion";
 import { useRef, useEffect } from "react";
+import { ClubStadiumBackdrop } from "./club-atmosphere";
 import { MapPin, ArrowDownRight } from "lucide-react";
 
 export function EditorialHero() {
@@ -67,6 +68,7 @@ export function EditorialHero() {
       className="relative w-full overflow-hidden"
     >
       <div className="relative h-[92vh] min-h-[640px] w-full">
+        <ClubStadiumBackdrop />
         {/* Atmospheric gradient bg — theme-aware via --accent-rgb */}
         <div
           className="absolute inset-0 pointer-events-none"
@@ -187,7 +189,7 @@ export function EditorialHero() {
         >
           <Link
             href="#my-journey"
-            className="group flex items-center gap-3 px-4 py-3 rounded-2xl border border-border bg-surface-hover backdrop-blur-md hover:border-accent/50 transition-all"
+            className="hero-journey-link group flex items-center gap-3 px-4 py-3 rounded-2xl border border-border bg-surface-hover backdrop-blur-md hover:border-accent/50 transition-all"
           >
             <ArrowDownRight className="w-5 h-5 text-foreground" />
             <div className="text-right">

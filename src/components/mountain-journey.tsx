@@ -56,12 +56,14 @@ function calendarYear(progress: number) {
 
 function SeasonalPainting({ season, progress }: { season: Season; progress: ReturnType<typeof useMotionValue<number>> }) {
   const opacity = useTransform(progress, (value) => seasonOpacity(season, value));
-  return <motion.image href={`/images/journey/${season}.jpg`} x="0" y="0" width={WORLD_WIDTH} height={WORLD_HEIGHT} preserveAspectRatio="none" style={{ opacity }} />;
+  return <motion.image href={`/images/journey/${season}.webp`} x="0" y="0" width={WORLD_WIDTH} height={WORLD_HEIGHT} preserveAspectRatio="none" style={{ opacity }} />;
 }
 
 export function MountainJourney() {
   const sectionRef = useRef<HTMLElement>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
+  const hikerScaleRef = useRef<SVGGElement>(null);
+  const hikerFacingRef = useRef<SVGGElement>(null);
   const progress = useMotionValue(0);
   const aspect = useMotionValue(1.75);
   const [manual, setManual] = useState(false);
@@ -94,9 +96,13 @@ export function MountainJourney() {
     if (!manual) progress.set(clamp(value));
   });
   useMotionValueEvent(progress, "change", (value) => {
+    // Native SVG transforms anchor scale/mirroring at the feet (0, 0).
+    // CSS fill-box origins include the sprite sheet and can displace the figure.
+    hikerScaleRef.current?.setAttribute("transform", `scale(${0.95 - value * 0.4})`);
+    hikerFacingRef.current?.setAttribute("transform", `scale(${Math.cos(pathPointAt(value).angle) < 0 ? -1 : 1} 1)`);
     const index = Math.max(0, CHECKPOINTS.findLastIndex((checkpoint) => value >= checkpoint.t - 0.018));
     // React renders only when a milestone, year or season changes. Camera,
-    // painting blend, path and sprite stay entirely on MotionValues.
+    // painting blend, path and sprite update without React renders.
     setStage((current) => current === index ? current : index);
     const nextYear = calendarYear(value);
     setYear((current) => current === nextYear ? current : nextYear);
@@ -161,10 +167,14 @@ export function MountainJourney() {
               </g>;
             })}
             <motion.g style={{ x: hikerX, y: hikerY }}>
-              <ellipse cx="0" cy="3" rx="22" ry="6" fill="#152b25" fillOpacity="0.35" />
-              <motion.svg x="-35" y="-113" width="70" height="119" viewBox={spriteViewBox} overflow="hidden">
-                <image href="/images/journey/hiker-sprite.png" x="0" y="0" width="1416" height="400" />
-              </motion.svg>
+              <g ref={hikerScaleRef} transform="scale(0.95)">
+                <ellipse cx="0" cy="3" rx="22" ry="6" fill="#152b25" fillOpacity="0.35" />
+                <g ref={hikerFacingRef}>
+                  <motion.svg x="-35" y="-113" width="70" height="119" viewBox={spriteViewBox} overflow="hidden">
+                    <image href="/images/journey/hiker-sprite.webp" x="0" y="0" width="1416" height="400" />
+                  </motion.svg>
+                </g>
+              </g>
             </motion.g>
           </motion.svg>
           <div className="mountain-shade" aria-hidden="true" />

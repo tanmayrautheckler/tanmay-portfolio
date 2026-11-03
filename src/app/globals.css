@@ -23,7 +23,7 @@
   --gradient-4: #db2777;
 }
 
-.dark:not(.theme-ember):not(.theme-ocean):not(.theme-luxe) {
+.dark {
   --background: #050505;
   --foreground: #ededed;
   --surface: rgba(255, 255, 255, 0.03);
@@ -183,7 +183,7 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-::selection { background: var(--accent); color: #000; }
+::selection { background: var(--selection-bg, var(--foreground)); color: var(--selection-ink, var(--background)); }
 
 html { position: relative; scroll-behavior: smooth; }
 @media (prefers-reduced-motion: reduce) {

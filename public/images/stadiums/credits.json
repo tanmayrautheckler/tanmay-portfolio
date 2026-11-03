@@ -1,0 +1,41 @@
+{
+  "barcelona": {
+    "title": "File:Camp Nou Panoramic Interior View.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Camp_Nou_Panoramic_Interior_View.jpg",
+    "author": "Johannes Falke",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+  },
+  "madrid": {
+    "title": "File:Madrid Santiago Bernabéu Stadium 3.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Madrid_Santiago_Bernab%C3%A9u_Stadium_3.jpg",
+    "download": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/63/Madrid_Santiago_Bernab%C3%A9u_Stadium_3.jpg/1280px-Madrid_Santiago_Bernab%C3%A9u_Stadium_3.jpg",
+    "author": "Валерий Дед",
+    "license": "CC BY 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/3.0"
+  },
+  "united": {
+    "title": "File:Old Trafford (interior), Manchester United.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Old_Trafford_(interior),_Manchester_United.jpg",
+    "download": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/8f/Old_Trafford_%28interior%29%2C_Manchester_United.jpg/1280px-Old_Trafford_%28interior%29%2C_Manchester_United.jpg",
+    "author": "Stacey MacNaught",
+    "license": "CC BY 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.0"
+  },
+  "bayern": {
+    "title": "File:Allianz Arena Playing field panorama.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Allianz_Arena_Playing_field_panorama.jpg",
+    "download": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4e/Allianz_Arena_Playing_field_panorama.jpg/1280px-Allianz_Arena_Playing_field_panorama.jpg",
+    "author": "Chris 73 / Wikimedia Commons",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+  },
+  "juventus": {
+    "title": "File:Inside Juventus Stadium.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Inside_Juventus_Stadium.jpg",
+    "download": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/db/Inside_Juventus_Stadium.jpg/1280px-Inside_Juventus_Stadium.jpg",
+    "author": "Roberto Gearfil Lombardi",
+    "license": "CC BY-SA 3.0 it",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/it/deed.en"
+  }
+}
