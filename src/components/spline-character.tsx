@@ -10,7 +10,7 @@ const SPLINE_SCENE_URL = "https://prod.spline.design/V62uY8ufxBxptyGF/scene.spli
 type CharacterProps = { state: "idle" | "talking"; size?: number; compact?: boolean };
 export function SplineCharacter({ state, size = 56 }: CharacterProps) {
   const reduced = useReducedMotion();
-  if (reduced) return <PikachuAvatar size={size} active={state === "talking"}/>;
+  if (reduced) return <PikachuAvatar size="100%" active={false}/>;
   return <LiveSplineCharacter key={size} state={state} size={size}/>;
 }
 function LiveSplineCharacter({ state, size = 56 }: CharacterProps) {
@@ -39,8 +39,8 @@ function LiveSplineCharacter({ state, size = 56 }: CharacterProps) {
         const frame = () => {
           const canvas = canvasRef.current;
           if (!canvas || !app) return;
-          if (canvas.style.width !== `${size}px`) canvas.style.width = `${size}px`;
-          if (canvas.style.height !== `${size}px`) canvas.style.height = `${size}px`;
+          if (canvas.style.width !== "100%") canvas.style.width = "100%";
+          if (canvas.style.height !== "100%") canvas.style.height = "100%";
         };
         const configure = () => {
           if (!app) return;
@@ -86,8 +86,8 @@ function LiveSplineCharacter({ state, size = 56 }: CharacterProps) {
     return () => clearInterval(interval);
   }, [state, loaded]);
 
-  return <div style={{ width: size, height: size, position: "relative", flexShrink: 0 }} aria-hidden="true">
-    {(!loaded) && <div className="pika-character-fallback"><PikachuAvatar size={size} active={state === "talking"}/></div>}
-    {<canvas ref={canvasRef} width={512} height={512} style={{ width: size, height: size, position: "absolute", inset: 0, opacity: loaded ? 1 : 0, pointerEvents: "none", transition: "opacity 200ms ease" }}/>} 
+  return <div style={{ width: "100%", height: "100%", position: "relative", flexShrink: 0 }} aria-hidden="true">
+    {(!loaded) && <div className="pika-character-fallback"><PikachuAvatar size="100%" active={state === "talking"}/></div>}
+    <canvas ref={canvasRef} width={512} height={512} style={{ width: "100%", height: "100%", position: "absolute", inset: 0, opacity: loaded ? 1 : 0, pointerEvents: "none", transition: "opacity 200ms ease" }}/>
   </div>;
 }

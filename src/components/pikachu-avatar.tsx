@@ -1,8 +1,9 @@
 "use client";
 
 /** Lightweight Pikachu fallback and chat avatar; the launcher retains its original 3D scene. */
-export function PikachuAvatar({ size = 48, active = false }: { size?: number; active?: boolean }) {
-  return <svg width={size} height={size} viewBox="0 0 120 120" fill="none" aria-hidden="true" className={`pika-avatar${active ? " is-active" : ""}`}>
+export function PikachuAvatar({ size = 48, active = false }: { size?: number | string; active?: boolean }) {
+  // Button icon defaults must not shrink this illustration to a 16px icon.
+  return <svg width={size} height={size} style={{ width: size, height: size }} viewBox="0 0 120 120" fill="none" aria-hidden="true" className={`pika-avatar${active ? " is-active" : ""}`}>
     <path className="pika-tail" d="m88 78 22-19-2 18 10 4-21 24-1-18-8 4" fill="#F5CA35" stroke="#815429" strokeWidth="2.5" strokeLinejoin="round"/>
     <g className="pika-body">
       <path d="M33 48C23 38 20 16 24 8c12 4 24 20 24 35M73 43C78 25 92 10 101 10c1 14-9 32-19 40" fill="#F5D345" stroke="#815429" strokeWidth="2.3"/>

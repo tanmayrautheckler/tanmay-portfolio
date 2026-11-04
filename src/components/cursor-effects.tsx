@@ -11,10 +11,11 @@ export function CustomCursor() {
   const paletteId = useAppearancePalette();
   const { resolvedTheme } = useTheme();
   const palette = clubPalettes.find(item => item.id === paletteId) ?? clubPalettes[0];
-  const colors = palette[resolvedTheme === "light" ? "light" : "dark"];
-  const pointerSvg = (interactive: boolean) => `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="36" viewBox="0 0 32 36"><path d="M4 3L11 27L15 17L25 13Z" fill="${interactive ? colors.accent : colors.foreground}" stroke="${colors.background}" stroke-width="2.2" stroke-linejoin="round"/><path d="M7 7L12 22L14 15L21 13Z" fill="${interactive ? colors.background : colors.accent}"/></svg>`;
-  const pointer = `url("data:image/svg+xml,${encodeURIComponent(pointerSvg(false))}") 4 3, auto`;
-  const actionPointer = `url("data:image/svg+xml,${encodeURIComponent(pointerSvg(true))}") 4 3, pointer`;
+  const mode = resolvedTheme === "light" ? "light" : "dark";
+  // Local PNGs avoid SVG cursor decoding differences between browsers. The
+  // black/white outline stays visible over photography in either theme.
+  const pointer = `url("/cursors/${palette.id}-${mode}.png") 3 3, default`;
+  const actionPointer = `url("/cursors/${palette.id}-${mode}-action.png") 3 3, pointer`;
 
   useEffect(() => {
     const fine = window.matchMedia("(hover: hover) and (pointer: fine)");

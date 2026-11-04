@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { INPUT_PLACEHOLDER, SUGGESTED_PROMPTS } from "@/data/chatbot-context";
 
 export function AIChatbot() {
-  const compactLauncher = usePathname().startsWith("/projects");
+  const alignRight = usePathname().startsWith("/projects");
   const [isOpen, setIsOpen] = useState(false);
   const [hovering, setHovering] = useState(false);
   const [input, setInput] = useState("");
@@ -62,7 +62,7 @@ export function AIChatbot() {
   };
 
   return (
-    <div className={`pika-chat fixed bottom-4 z-50 md:bottom-5 ${compactLauncher ? "right-3 md:right-5" : "left-3 md:left-5"}`} data-compact={compactLauncher} data-thinking={isLoading} data-open={isOpen} style={position ? { left: position.x, top: position.y, bottom: "auto", right: "auto" } : undefined}>
+    <div className={`pika-chat fixed bottom-4 z-50 md:bottom-5 ${alignRight ? "right-3 md:right-5" : "left-3 md:left-5"}`} data-side={alignRight ? "right" : "left"} data-thinking={isLoading} data-open={isOpen} style={position ? { left: position.x, top: position.y, bottom: "auto", right: "auto" } : undefined}>
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -79,7 +79,7 @@ export function AIChatbot() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: reducedMotion ? 0 : 6 }}
             transition={{ duration: reducedMotion ? 0 : 0.18 }}
-            className="fixed bottom-32 left-3 md:left-5 flex max-h-[calc(100svh-12rem)] w-[calc(100vw-1.5rem)] max-w-96 flex-col overflow-hidden rounded-2xl border border-border bg-background shadow-2xl"
+            className="fixed left-3 md:left-5 flex w-[calc(100vw-1.5rem)] max-w-96 flex-col overflow-hidden rounded-2xl border border-border bg-background shadow-2xl"
           >
             <div className="flex shrink-0 items-center justify-between border-b border-border px-4 py-3">
               <div className="flex items-center gap-3">
@@ -89,7 +89,7 @@ export function AIChatbot() {
                   <div className="mt-0.5 text-xs text-text-secondary">{isLoading ? "Thinking about your question…" : "Tanmay’s little AI sidekick"}</div>
                 </div>
               </div>
-              <Button variant="ghost" size="icon" onClick={closeChat} aria-label="Close assistant">
+              <Button variant="ghost" size="icon" className="size-11" onClick={closeChat} aria-label="Close assistant">
                 <X aria-hidden="true" />
               </Button>
             </div>
@@ -152,9 +152,9 @@ export function AIChatbot() {
                 onChange={(event) => setInput(event.target.value)}
                 placeholder={INPUT_PLACEHOLDER}
                 aria-label="Your question about Tanmay"
-                className="min-w-0 flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-text-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                className="min-w-0 flex-1 rounded-lg border border-border bg-background px-3 py-2 text-base sm:text-sm text-foreground placeholder:text-text-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
               />
-              <Button type="submit" size="icon" disabled={isLoading || !input.trim()} className="size-10" aria-label="Send question">
+              <Button type="submit" size="icon" disabled={isLoading || !input.trim()} className="size-11" aria-label="Send question">
                 <Send aria-hidden="true" />
               </Button>
             </form>
@@ -202,7 +202,7 @@ export function AIChatbot() {
         aria-controls={isOpen ? "portfolio-assistant" : undefined}
         className="pika-launcher"
       >
-        <span className="pika-launcher-character"><SplineCharacter size={compactLauncher ? 64 : 94} state={isLoading || hovering || isOpen ? "talking" : "idle"}/></span>
+        <span className="pika-launcher-character"><SplineCharacter size={120} state={isLoading || hovering || isOpen ? "talking" : "idle"}/></span>
         <span className="pika-launcher-spark" aria-hidden="true"><Zap size={12}/></span>
       </Button>
     </div>

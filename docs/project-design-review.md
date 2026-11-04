@@ -33,8 +33,9 @@ These informed principles, not copied compositions, assets or project claims.
 - Workflow paper and decision surfaces have distinct hierarchy. Review uses explicit
   wording and a dashed accent rail; clear results use the existing success token.
 - Scenario/action controls have 44px minimum height. Notes remain at least 11px.
-- Projects uses a compact right-corner Pikachu launcher so labels do not cover titles.
-  Chat, dragging and keyboard movement remain available. Other routes retain their launcher.
+- Pikachu uses a consistent 120px desktop / 96px phone launcher across routes,
+  with a 72px version for short landscape screens. Projects docks on the right.
+  Chat, dragging and keyboard movement remain available, without a text bubble.
 
 ## Verification
 
@@ -53,8 +54,9 @@ Preview captures: `/tmp/portfolio-design-refinement/`.
 
 ## Club cursor refinement
 
-The browser renders a small two-tone pennant pointer through an SVG cursor URL,
-with a standard cursor fallback. Theme selection updates its colors. Text fields
+The browser renders an outlined arrow through local 32px PNG cursor files,
+with a standard cursor fallback. A black/white outline keeps it visible across
+photographs and light/dark surfaces; theme selection updates its accent. Text fields
 and specialized drag/resize cursors remain native; coarse pointers and forced colors
 keep standard browser behavior. No `cursor: none`.
 
@@ -71,3 +73,18 @@ the themed native pointer and clickable, draggable companion. Production build,
 scoped ESLint, all 11 palette tests and diff whitespace checks passed. Both remote
 main branches matched the previous deployed baseline before release. Vercel's
 connected production branch is `traut1-odoo/tanmay-portfolio:main`.
+
+## Browser bug fixes
+
+Following the user's browser report, removed the route-specific 64px launcher.
+Explicit SVG dimensions prevent shadcn button icon styles from shrinking the
+fallback illustration to 16px. The 3D canvas now follows the responsive container.
+Replaced inline SVG cursor URLs with 20 local PNGs (five clubs, light/dark, idle/action),
+17,711 bytes total. Native text, drag, forced-color and coarse-pointer behavior remains.
+
+Chat close/send controls are 44px. Phone input text is 16px to avoid automatic
+iPhone input zoom. Dialog height uses the dynamic viewport and short screens hide
+the launcher while the dialog is open. Checks covered 1440×900, 390×844, 320×780
+and 740×360, drag without accidental opening, Enter/Escape, focus restoration,
+light/dark theme changes, all cursor URLs and no browser console errors. Build,
+scoped ESLint and diff whitespace checks passed. Reduced motion reviewed in source.
