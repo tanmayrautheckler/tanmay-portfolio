@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { X, Send, User, Zap } from "lucide-react";
 import ReactMarkdown from "react-markdown";
@@ -12,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { INPUT_PLACEHOLDER, SUGGESTED_PROMPTS } from "@/data/chatbot-context";
 
 export function AIChatbot() {
+  const compactLauncher = usePathname().startsWith("/projects");
   const [isOpen, setIsOpen] = useState(false);
   const [hovering, setHovering] = useState(false);
   const [input, setInput] = useState("");
@@ -60,7 +62,7 @@ export function AIChatbot() {
   };
 
   return (
-    <div className="pika-chat fixed bottom-4 left-3 z-50 md:bottom-5 md:left-5" data-thinking={isLoading} data-open={isOpen} style={position ? { left: position.x, top: position.y, bottom: "auto" } : undefined}>
+    <div className={`pika-chat fixed bottom-4 z-50 md:bottom-5 ${compactLauncher ? "right-3 md:right-5" : "left-3 md:left-5"}`} data-compact={compactLauncher} data-thinking={isLoading} data-open={isOpen} style={position ? { left: position.x, top: position.y, bottom: "auto", right: "auto" } : undefined}>
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -200,8 +202,7 @@ export function AIChatbot() {
         aria-controls={isOpen ? "portfolio-assistant" : undefined}
         className="pika-launcher"
       >
-        <span className="pika-launcher-character"><SplineCharacter size={94} state={isLoading || hovering || isOpen ? "talking" : "idle"}/></span>
-        <span className="pika-launcher-label">{isOpen ? "See you here!" : isLoading ? "Thinking…" : "Pika! Ask me"}<small>{isOpen ? "Click to tuck me away" : "Drag me · Click to chat"}</small></span>
+        <span className="pika-launcher-character"><SplineCharacter size={compactLauncher ? 64 : 94} state={isLoading || hovering || isOpen ? "talking" : "idle"}/></span>
         <span className="pika-launcher-spark" aria-hidden="true"><Zap size={12}/></span>
       </Button>
     </div>

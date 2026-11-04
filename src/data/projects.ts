@@ -1,4 +1,6 @@
-export type ProjectCategory = "Manufacturing" | "Finance" | "Integrations" | "AI & Automation" | "Data & Dashboards" | "Operations" | "Academic";
+import { recentProjects } from "./recent-projects";
+
+export type ProjectCategory = "Manufacturing" | "Finance" | "Integrations" | "AI & Automation" | "Data & Dashboards" | "Operations" | "Health & Care" | "Academic";
 
 export interface CaseStudySection {
   type: "narrative" | "mockup" | "mockup-pair" | "flow" | "metrics" | "quote" | "image" | "image-pair" | "image-grid" | "mermaid" | "code";
@@ -42,11 +44,14 @@ export interface Project {
   solution: string;
   impact: string[];
   date: string;
+  preview?: { href: string; label: string; description: string };
+  relatedSlugs?: string[];
   /** Rich case study sections for featured projects */
   caseStudy?: CaseStudySection[];
 }
 
 export const projects: Project[] = [
+  ...recentProjects,
   // ═══ FEATURED ═══
   {
     slug: "vendor-management-portal",
@@ -475,14 +480,15 @@ async def aggregate_records(
   // ═══ CONNECTED SYSTEMS & PERSONAL PROJECTS ═══
   {
     slug: "heckler-headless",
+    relatedSlugs: ["ai-tax-exemptions", "customer-data-foundations"],
     title: "The business behind the storefront",
     category: "Integrations",
     description: "My work on Heckler's shared business platform connects dealer ordering, manufacturing, purchasing, returns and reporting. Contributions are merged into the codebase, with rollout managed by feature.",
     tech: ["Next.js", "TypeScript", "Odoo", "Shopify", "Clerk"],
-    featured: false,
+    featured: true,
     problem: "An order touches far more than a checkout. Dealers need quotes and documents, planners need parts and capacity, and staff need a clear way to handle changes and returns.",
     role: "Translated operational needs into workflows and contributed to their design, implementation and refinement within a shared team codebase, using AI coding tools throughout the build.",
-    solution: "Connected dealer quotes, manufacturing queues, material-aware delivery estimates, purchasing actions, business reporting and return approvals to the underlying operational records.",
+    solution: "Connected dealer quotes, manufacturing queues, material-aware delivery estimates, purchasing actions, reporting and return approvals to operational records. Related contributions extend into AI-assisted tax exemptions and customer-data quality, with separate project stories for those workflows.",
     impact: ["Dealer workspace brings quotes, documents and order conversations together", "Planning views connect shipment risk, build priorities, people and stations", "Lead-time calculations account for components, production work and order quantity", "Returns move through review and approval before creating an ERP return"],
     date: "2026",
     caseStudy: [
@@ -504,12 +510,17 @@ async def aggregate_records(
       {
         type: "narrative",
         title: "Planning around the constraints",
-        body: "Manufacturing views show what can ship, what needs to be built, where capacity is tight and how work reaches each station. Lead-time calculations consider stock, component supply, nested bills of materials and order size. Purchasing workflows turn shortages into reviewed release requests or draft requests for quotation, with checks against duplicate actions.",
+        body: "Manufacturing views show what can ship, what needs to be built, where capacity is tight and how work reaches each station. My contributions refined lead-time calculations around available stock, existing manufacturing orders, nested bills of materials, shared working-time rules and real station capacity. Reserved stock must not become an optimistic promise to another order. Purchasing workflows turn shortages into reviewed release requests or draft requests for quotation, with checks against duplicate actions.",
       },
       {
         type: "narrative",
         title: "Follow the number back to the work",
-        body: "Sales and margin reporting supports period comparison, filtering and drill-down. Related work extends into receivables, manufacturing and shipping. The partner workspace brings order acknowledgment, delivery promises, shipment progress and messages alongside the same operational records.",
+        body: "I contributed product and channel reporting, product-level margin drill-downs, cost-at-sale context, price/volume/cost explanations, control charts and margin watchlists. Those views connect an unusual number to the products and orders behind it. Related work extends into receivables, manufacturing and shipping. The partner workspace brings order acknowledgment, delivery promises, shipment progress and messages alongside the same operational records.",
+      },
+      {
+        type: "narrative",
+        title: "The work beneath the screens",
+        body: "A reliable platform also needs reliable customer records and decisions. My related work includes AI-assisted tax certificate reading, customer form prefill, Finance review and controlled automation, alongside company/contact data-quality workflows. Each deserves its own story because the important work is in the rules, exceptions and review path—not just the interface.",
       },
       {
         type: "narrative",
@@ -1202,5 +1213,6 @@ export const categories: ProjectCategory[] = [
   "AI & Automation",
   "Data & Dashboards",
   "Operations",
+  "Health & Care",
   "Academic",
 ];

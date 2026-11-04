@@ -1,6 +1,8 @@
 "use client";
 
 import { ArrowDown, ArrowRight, Boxes, Check, Database, FileCheck2, MessageSquare, Search, ShieldCheck, SlidersHorizontal } from "lucide-react";
+import Image from "next/image";
+import { TaxCertificateWorkflow, ContactCleanupWorkflow } from "./project-workflows";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import type { Project } from "@/data/projects";
 import styles from "./work.module.css";
@@ -42,10 +44,18 @@ export function ProjectVisual({ project }: { project: Project }) {
   const quality = project.slug === "qc-vendor-rma";
   const connector = project.slug === "ai-erp-connector";
   const trading = project.slug === "trading-research-desk";
+  const tax = project.slug === "ai-tax-exemptions";
+  const contacts = project.slug === "customer-data-foundations";
+  const health = project.slug === "saanvilo-health";
   return (
-    <div className={styles.visual} role="figure" aria-label={`${project.title}: conceptual system illustration`} data-kind={vendor ? "portal" : quality ? "quality" : connector ? "connector" : trading ? "research" : "system"}>
-      <div className={styles.visualTop}><span>{trading ? "Research desk" : "System sketch"}</span><span>TR / {project.date}</span></div>
-      {vendor ? (
+    <div className={styles.visual} role="figure" aria-label={`${project.title}: ${health ? "deployed prototype preview" : "conceptual system illustration"}`} data-kind={tax || contacts ? "workflow" : health ? "health" : vendor ? "portal" : quality ? "quality" : connector ? "connector" : trading ? "research" : "system"}>
+      <div className={styles.visualTop}><span>{tax || contacts ? "Try the workflow" : health ? "Product preview" : trading ? "Research desk" : "System sketch"}</span><span>TR / {project.date}</span></div>
+      {tax ? <TaxCertificateWorkflow /> : contacts ? <ContactCleanupWorkflow /> : health ? <div className={styles.healthSketch}><Image src="/images/projects/saanvilo-overview.webp" alt="Saanvilo's deployed sample-data overview with report capture, medicine entries and visit preparation" width={1440} height={1000} sizes="(max-width:640px) 90vw, 900px" /><div><strong>A little less to carry.</strong><span>Family records · Visit preparation · Interactive prototype</span></div></div> : project.slug === "heckler-headless" ? <div className={styles.platformSketch}>
+        <span className={styles.sketchLabel}>The workflow crosses the whole business</span>
+        <div>{["Quotes & orders", "Supply & planning", "Tax & approvals", "Contacts & identity"].map((name, index) => <span key={name}><small>0{index + 1}</small><strong>{name}</strong></span>)}</div>
+        <p><Database size={17} /><strong>Connected operational records</strong><span>Odoo / Shopify / Account directory</span></p>
+        <span className={styles.sketchFoot}>Shared platform · My contributions</span>
+      </div> : vendor ? (
         <div className={styles.portalSketch}>
           <div className={styles.sheetSketch}>
             <span className={styles.sketchLabel}>One shared record</span>
@@ -79,7 +89,7 @@ export function ProjectVisual({ project }: { project: Project }) {
       ) : (
         <div className={styles.systemSketch}><span className={styles.sketchLabel}>{project.category}</span><div className={styles.projectFlow}>{(projectFlows[project.slug] ?? project.tech.slice(0, 3)).map((step, index) => <div key={step}><span>0{index + 1}</span><strong>{step}</strong>{index < 2 && <ArrowDown size={17} />}</div>)}</div><span className={styles.sketchFoot}>A map of the project’s moving parts</span></div>
       )}
-      <span className={styles.visualCaption}>Conceptual illustration</span>
+      <span className={styles.visualCaption}>{health ? "Actual demo capture · Sample data" : tax || contacts ? "Illustrative workflow" : "Conceptual illustration"}</span>
     </div>
   );
 }

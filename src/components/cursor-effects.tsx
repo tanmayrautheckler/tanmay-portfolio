@@ -1,65 +1,38 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { motion, useMotionValue, useSpring, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
+import { useTheme } from "next-themes";
+import { useAppearancePalette } from "@/hooks/use-appearance";
+import { clubPalettes } from "@/lib/appearance-palettes";
 
-// ═══ CUSTOM CURSOR WITH GLOW TRAIL ═══
+// The browser draws the theme-colored pointer with a standard cursor fallback.
 export function CustomCursor() {
-  const cursorX = useMotionValue(-100);
-  const cursorY = useMotionValue(-100);
-  const springX = useSpring(cursorX, { stiffness: 300, damping: 20 });
-  const springY = useSpring(cursorY, { stiffness: 300, damping: 20 });
-  const reduced = useReducedMotion();
-  const [hovering, setHovering] = useState(false);
-  const [clicking, setClicking] = useState(false);
-  const [visible, setVisible] = useState(false);
-  const seen = useRef(false);
+  const paletteId = useAppearancePalette();
+  const { resolvedTheme } = useTheme();
+  const palette = clubPalettes.find(item => item.id === paletteId) ?? clubPalettes[0];
+  const colors = palette[resolvedTheme === "light" ? "light" : "dark"];
+  const pointerSvg = (interactive: boolean) => `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="36" viewBox="0 0 32 36"><path d="M4 3L11 27L15 17L25 13Z" fill="${interactive ? colors.accent : colors.foreground}" stroke="${colors.background}" stroke-width="2.2" stroke-linejoin="round"/><path d="M7 7L12 22L14 15L21 13Z" fill="${interactive ? colors.background : colors.accent}"/></svg>`;
+  const pointer = `url("data:image/svg+xml,${encodeURIComponent(pointerSvg(false))}") 4 3, auto`;
+  const actionPointer = `url("data:image/svg+xml,${encodeURIComponent(pointerSvg(true))}") 4 3, pointer`;
 
   useEffect(() => {
     const fine = window.matchMedia("(hover: hover) and (pointer: fine)");
-    const move = (event: PointerEvent) => {
-      if (!fine.matches || event.pointerType !== "mouse") return;
-      cursorX.set(event.clientX);
-      cursorY.set(event.clientY);
-      if (!seen.current) {
-        springX.jump(event.clientX);
-        springY.jump(event.clientY);
-        seen.current = true;
-        setVisible(true);
-      }
-      const target = event.target;
-      setHovering(target instanceof Element && Boolean(target.closest("a,button,input,textarea,select,summary,[role='button'],.cursor-hover")));
-    };
-    const hide = () => { seen.current = false; setVisible(false); setClicking(false); };
-    const down = () => setClicking(true);
-    const up = () => setClicking(false);
-    const keyboard = (event: KeyboardEvent) => { if (event.key === "Tab") hide(); };
-    window.addEventListener("pointermove", move, { passive: true });
-    window.addEventListener("pointerdown", down);
-    window.addEventListener("pointerup", up);
-    window.addEventListener("blur", hide);
-    window.addEventListener("keydown", keyboard);
-    document.documentElement.addEventListener("pointerleave", hide);
-    fine.addEventListener("change", hide);
+    const root = document.documentElement;
+    const update = () => root.toggleAttribute("data-club-cursor", fine.matches);
+    update();
+    fine.addEventListener("change", update);
     return () => {
-      window.removeEventListener("pointermove", move);
-      window.removeEventListener("pointerdown", down);
-      window.removeEventListener("pointerup", up);
-      window.removeEventListener("blur", hide);
-      window.removeEventListener("keydown", keyboard);
-      document.documentElement.removeEventListener("pointerleave", hide);
-      fine.removeEventListener("change", hide);
+      root.removeAttribute("data-club-cursor");
+      fine.removeEventListener("change", update);
     };
-  }, [cursorX, cursorY, springX, springY]);
+  }, []);
 
-  // This decorates the system pointer. Never hide the native cursor.
-  return <motion.div aria-hidden="true" className="fixed top-0 left-0 pointer-events-none z-[9998]"
-    style={{ x: reduced ? cursorX : springX, y: reduced ? cursorY : springY, translateX: "-50%", translateY: "-50%", opacity: visible ? 1 : 0 }}>
-    <motion.div className="size-9 rounded-full border border-cyan-400/50"
-      animate={{ transform: `scale(${clicking ? .6 : hovering ? 1.5 : 1})`, opacity: hovering ? .7 : .4 }}
-      transition={{ duration: reduced ? 0 : .16 }}
-      style={{ boxShadow: "0 0 15px rgba(14,187,255,.2)" }}/>
-  </motion.div>;
+  return <style>{`@media (hover:hover) and (pointer:fine) and (forced-colors:none) {
+      html[data-club-cursor],html[data-club-cursor] body {cursor:${pointer}}
+      :where(html[data-club-cursor]) :where(a[href],button:not(:disabled),[role="button"],[role="tab"],summary) {cursor:${actionPointer}}
+      :where(html[data-club-cursor]) :where(input,textarea,[contenteditable="true"]) {cursor:auto}
+    }`}</style>;
 }
 
 // ═══ MAGNETIC TILT CARD ═══

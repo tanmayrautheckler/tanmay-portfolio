@@ -54,12 +54,16 @@ export default function ProjectDetail({ slug }: { slug: string }) {
   const project = projects[projectIndex];
   if (!project) return null;
   const sections = project.caseStudy ?? [];
-  const demo = ["trading-research-desk", "neighbourhelper"].includes(slug)
+  const demo = project.preview ?? (["trading-research-desk", "neighbourhelper"].includes(slug)
     ? { href: "/#off-the-clock", label: slug === "trading-research-desk" ? "Try the research desk" : "Explore the neighbourhood prototype" }
     : ["manufacturing-cost-accounting", "csku-cut-parts", "framework-configurator"].includes(slug)
       ? { href: "/#under-the-surface", label: "Explore the interactive cost workbench" }
-      : null;
-  const related = [...projects.filter((item) => item.slug !== slug && item.category === project.category), ...projects.filter((item) => item.slug !== slug && item.category !== project.category)].slice(0, 2);
+      : null);
+  const related = Array.from(new Map([
+    ...projects.filter((item) => project.relatedSlugs?.includes(item.slug)),
+    ...projects.filter((item) => item.slug !== slug && item.category === project.category),
+    ...projects.filter((item) => item.slug !== slug && item.category !== project.category),
+  ].map(item => [item.slug, item])).values()).slice(0, 2);
   return (
     <article className={styles.work}>
       <header className={styles.detailHero}>
@@ -71,7 +75,7 @@ export default function ProjectDetail({ slug }: { slug: string }) {
         <section className={styles.roleNote} aria-labelledby="contribution-heading"><h2 id="contribution-heading">My contribution</h2><p>{project.role}</p></section>
         <div className={styles.toolsNote}><span>Tools & disciplines</span><ul aria-label="Technologies and disciplines">{project.tech.map((tech) => <li key={tech}>{tech}</li>)}</ul></div>
       </div>
-      <section className={styles.detailVisual} aria-label="Project at a glance"><ProjectVisual project={project} />{demo && <div className={styles.demoLink}><p>Explore the idea</p><span>{slug === "trading-research-desk" ? "A guided demonstration of the research workflow, using illustrative examples." : slug === "neighbourhelper" ? "Walk through a sample request and see the different people involved." : "Take apart an illustrative product and change the assumptions behind its cost."}</span><Button asChild variant="outline"><Link href={demo.href}>{demo.label} <ArrowUpRight size={15} /></Link></Button></div>}</section>
+      <section className={styles.detailVisual} aria-label="Project at a glance"><ProjectVisual project={project} />{demo && <div className={styles.demoLink}><p>Explore the idea</p><span>{project.preview?.description ?? (slug === "trading-research-desk" ? "A guided demonstration of the research workflow, using illustrative examples." : slug === "neighbourhelper" ? "Walk through a sample request and see the different people involved." : "Take apart an illustrative product and change the assumptions behind its cost.")}</span><Button asChild variant="outline"><Link href={demo.href} {...(project.preview ? { target: "_blank", rel: "noreferrer" } : {})}>{demo.label} <ArrowUpRight size={15} /></Link></Button></div>}</section>
       <div className={styles.detailBody}>
         <aside className={styles.contentsRail}><p>In this project</p><nav aria-label="Project contents"><a href="#overview">The starting point</a><a href="#approach">What I built</a>{sections.map((section, index) => section.title && <a key={index} href={`#section-${index}`}>{section.title}</a>)}<a href="#outcomes">Outcomes & scope</a><a href="#related">Keep exploring</a></nav></aside>
         <div className={styles.story}>

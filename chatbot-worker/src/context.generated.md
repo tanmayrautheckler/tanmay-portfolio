@@ -153,10 +153,58 @@ Managed pressure vessel fabrication for 30+ personnel under ASME Section VIII an
 
 ## Projects
 
-Tanmay's portfolio includes 25 projects across manufacturing operations, ERP, integrations, AI, data dashboards, personal prototypes and academic work. Featured projects have full case studies; the rest are summarized below.
+Tanmay's portfolio includes 28 projects across manufacturing operations, ERP, integrations, AI, data dashboards, personal prototypes and academic work. Featured projects have full case studies; the rest are summarized below.
 
 
 ### Featured projects
+
+
+#### From certificate to a clear decision. (2026)
+**Category:** AI & Automation
+**Description:** AI-assisted tax exemption workflows: certificate-first forms, state-by-state evidence, Finance review and controlled automation connected to Odoo.
+**Tech:** Next.js, TypeScript, Claude, Structured Outputs, Odoo, Workflow Design
+**Problem:** An uploaded certificate is not a blanket exemption. Its states, legal entity, classification and expiration have to make sense together. Customers had to re-enter information from documents; Finance had to check the evidence and carry the decision into Odoo.
+**Role:** Defined the business workflow and contributed its AI-assisted implementation in Heckler Headless: document reading, customer guidance, Finance review, historical certificate review and form prefill. Built with AI coding tools within a shared team platform.
+**Solution:** Separated quick form assistance from the full certificate review. A quick read proposes states and an exemption reason without blocking submission or replacing the customer's choices. The full read produces structured per-state findings. Finance can review those findings beside the document, prefill a decision or request missing evidence. Configured automation handles eligible cases through the same approval path, with separate controls for ERP synchronization.
+**Impact:** Certificate-first form proposes states and reason while preserving manual entry; Per-state findings distinguish coverage, missing evidence and issues needing review; Finance decisions and automated decisions share validation and an audit trail; Historical certificate review stays separate from live approval, ERP writes and customer communication; Merged contributions span the document reader, review workflow and November 3 form improvements; rollout remains feature-controlled
+
+**Case study narrative:**
+
+*Two reads. Two different jobs.* — The first job is to help a customer complete a form. The second is to evaluate the evidence behind a tax decision. I kept those jobs separate: a quick, bounded read proposes fields; a fuller read checks the certificate state by state. A quick suggestion never becomes an exemption on its own.
+
+*The latest change: remove the re-keying.* — On November 3, 2026, my certificate-first form contribution merged. Selecting a document can fill the states and reason. Sending, changing the file or leaving the form cancels an in-flight read. An unreadable document or unavailable model leaves the manual form usable. Suggestions do not overwrite choices the customer has already made.
+
+*A result with reasons, not a green tick.* — Structured findings cover certificate type, state coverage, dates and supporting evidence. Checks surface missing states, expiration, name mismatches and other issues. The same stored findings can be re-checked against current rules without another model call. Finance sees what the system found before deciding what it means.
+
+*Automation with a narrow remit.* — The implementation supports automatic information requests and approval of clean resale cases when configured. Ambiguous evidence, uncertain names, unmapped states and other exceptions go to Finance. Dry-run mode records proposed decisions without acting. Approval and synchronization are separate: ERP writes require their own rollout controls, and a sync failure stays visible rather than being presented as a completed update.
+
+*Older records need a different workflow.* — I also contributed review of certificates already on file. Historical cleanup must not silently turn into a new Finance decision, change an ERP record or contact a customer. Those actions remain separate, making the review useful without confusing a proposed finding with an applied business change.
+
+*What this page demonstrates.* — The interactive example uses a fictional certificate and simulated outcomes. It explains the decision paths; it does not upload documents, call a model or determine anyone's tax status. The source contributions are merged, but this case study does not claim every automation is enabled for every account.
+
+
+#### One customer. A trustworthy record. (2026)
+**Category:** Data & Dashboards
+**Description:** Contact and company data cleanup across Shopify, Odoo and account workflows: audit first, resolve uncertain matches, preserve relationships, then apply reviewed changes.
+**Tech:** Data Quality, Shopify, Odoo, TypeScript, PostgreSQL, Identity & Access
+**Problem:** A company can have several contacts, locations, email domains and historical records. A shared email domain does not prove two companies are the same. Cleaning the list without protecting those distinctions can break ordering, pricing, addresses or account access.
+**Role:** Worked on the business rules and operational workflows behind company/contact cleanup and account data quality, with contributions to the shared platform and related Odoo contact structures. The broader identity infrastructure is team work.
+**Solution:** Use a read-only audit to classify records, group candidates and compare them with existing company affiliations. Review proposed contacts and normalized addresses before applying a migration. Keep ambiguous or unassigned records visible, preserve source references and distinguish a data match from permission to access an account. Related Odoo contact structures separate companies, people, locations and address books.
+**Impact:** Reframed cleanup as customer-data integrity rather than a one-off spreadsheet exercise; Made existing affiliations, uncertain matches and unassigned contacts visible for review; Kept proposed mappings and reviewed changes separate, with an audit history; Preserved company, person, location and address distinctions instead of flattening them into duplicates; Connected one-off cleanup to ongoing directory and contact-structure workflows
+
+**Case study narrative:**
+
+*The hard part is deciding what a record means.* — Two rows can look alike and still belong to different legal entities. One person can work across locations without needing several identities. The useful question was not simply which rows to delete, but which relationships the business needed to preserve.
+
+*Start with an audit, not a merge button.* — The cleanup workflow reads customer and company records, checks existing affiliations, groups candidates by domain and normalizes address variants. Existing legitimate company relationships are distinguished from ambiguous affiliations and missing information. A domain is a clue for review, not an automatic instruction to consolidate records.
+
+*Make the proposed change reviewable.* — A review surface lets an operator inspect the company name, included contacts and proposed addresses before approving a plan. Pending, approved, applied and skipped are distinct states. That separation makes it possible to understand what was suggested and what actually changed.
+
+*Clean data must not quietly grant access.* — Contact discovery, company matching and account permissions are different responsibilities. Related import and directory work uses explicit placement rules, preserves existing memberships and leaves uncertain assignments for review. A contact appearing in a directory is not, by itself, evidence that an invitation was sent or access was granted.
+
+*Build a structure that stays clean.* — The related Odoo contact work models companies, people, flat locations and address books separately. A person can retain several affiliations without duplicating the contact. Address entries can link to native records, while history and ownership remain attached to their sources.
+
+*Scope and evidence.* — This case study describes the audit and review approach present in the shared codebase and my contribution to the broader data-quality work. The illustration uses fictional records. A reconciled before/after export would be needed to publish a precise number of contacts corrected or companies consolidated.
 
 
 #### AEI Vendor Management Portal (2026)
@@ -211,17 +259,43 @@ Metrics: Defect Types: 15; Dispositions: 6; Auto-Generated: 4; Python + XML: 2,2
 Metrics: Time to Answer: ~5s; MCP Tools: 12; Deployment: Org-wide; Models Accessible: 500+
 
 
-### Additional projects
-
-
 #### The business behind the storefront (2026)
 **Category:** Integrations
 **Description:** My work on Heckler's shared business platform connects dealer ordering, manufacturing, purchasing, returns and reporting. Contributions are merged into the codebase, with rollout managed by feature.
 **Tech:** Next.js, TypeScript, Odoo, Shopify, Clerk
 **Problem:** An order touches far more than a checkout. Dealers need quotes and documents, planners need parts and capacity, and staff need a clear way to handle changes and returns.
 **Role:** Translated operational needs into workflows and contributed to their design, implementation and refinement within a shared team codebase, using AI coding tools throughout the build.
-**Solution:** Connected dealer quotes, manufacturing queues, material-aware delivery estimates, purchasing actions, business reporting and return approvals to the underlying operational records.
+**Solution:** Connected dealer quotes, manufacturing queues, material-aware delivery estimates, purchasing actions, reporting and return approvals to operational records. Related contributions extend into AI-assisted tax exemptions and customer-data quality, with separate project stories for those workflows.
 **Impact:** Dealer workspace brings quotes, documents and order conversations together; Planning views connect shipment risk, build priorities, people and stations; Lead-time calculations account for components, production work and order quantity; Returns move through review and approval before creating an ERP return
+
+**Case study narrative:**
+
+*The order is only the beginning* — A dealer asking for a delivery date needs an answer that survives contact with the factory. Is the stock available? Are the components available? What work is already in the queue? My work on Heckler Headless connects those questions to the people and records that can answer them.
+
+*My part* — I contributed across dealer ordering, production planning, purchasing, returns and reporting. That meant translating business rules into screens and actions, working through exceptions, and refining the implementation with AI coding tools. This is a shared platform; this case study covers my contributions within it.
+
+*A dealer's next step should be clear* — The dealer workspace brings quote building, order conversations, documents, purchase-order uploads and available invoice payment links into one journey. On the staff side, a return request can be reviewed and discussed before approval creates the corresponding ERP record. A rejected request stays in the review history without creating an unnecessary return.
+
+*Planning around the constraints* — Manufacturing views show what can ship, what needs to be built, where capacity is tight and how work reaches each station. My contributions refined lead-time calculations around available stock, existing manufacturing orders, nested bills of materials, shared working-time rules and real station capacity. Reserved stock must not become an optimistic promise to another order. Purchasing workflows turn shortages into reviewed release requests or draft requests for quotation, with checks against duplicate actions.
+
+*Follow the number back to the work* — I contributed product and channel reporting, product-level margin drill-downs, cost-at-sale context, price/volume/cost explanations, control charts and margin watchlists. Those views connect an unusual number to the products and orders behind it. Related work extends into receivables, manufacturing and shipping. The partner workspace brings order acknowledgment, delivery promises, shipment progress and messages alongside the same operational records.
+
+*The work beneath the screens* — A reliable platform also needs reliable customer records and decisions. My related work includes AI-assisted tax certificate reading, customer form prefill, Finance review and controlled automation, alongside company/contact data-quality workflows. Each deserves its own story because the important work is in the rules, exceptions and review path—not just the interface.
+
+*Project scope* — The contributions described here are merged into Heckler's shared codebase. Some actions have separate permissions or rollout gates, so a merged feature does not mean every user can use it. Portfolio illustrations use fictional records and show the workflow rather than a live company account.
+
+
+### Additional projects
+
+
+#### Saanvilo — a family's care memory. (2026)
+**Category:** Health & Care
+**Description:** An India-first family-health prototype bringing reports, medicine entries, check-ins and visit preparation into one shared picture. Public interactive demo uses sample data.
+**Tech:** Next.js, React, Responsive UI, Browser Speech, Multilingual UX
+**Problem:** A family's care history can be scattered across reports, discharge papers, medicine packs and conversations. The person receiving care and the person remembering the details need a clearer way to prepare for the next appointment.
+**Role:** Developed the product concept and interactive family-health demo, shaping the journeys for capturing records, preparing visits and keeping medicine experiences in context.
+**Solution:** Built an interactive preview with a health timeline, reports and documents, medicine entries, vitals and symptoms, care-team views and a printable visit summary. Voice or text notes reduce the effort of capture. English, Hindi and Marathi options and a Lite mode explore an India-first mobile experience.
+**Impact:** Connected sample reports, medicine entries, check-ins and questions in a visit summary; Made recorded medicine use and personal experiences distinct from verified clinical instructions; Provided voice-note entry with text as an available alternative; Explored multilingual and lighter mobile use through a deployed interactive prototype; Deployed a working sample-data preview for testing the complete care-record journey
 
 
 #### Every handoff needs a next step (2026)
