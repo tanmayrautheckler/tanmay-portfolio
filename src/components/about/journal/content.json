@@ -1,0 +1,105 @@
+{
+  "title": "Tanmay Raut — A personal journal",
+  "spreads": [
+    {
+      "id": "the-person",
+      "label": "The person",
+      "left": {
+        "number": "01",
+        "kicker": "A LITTLE INTRODUCTION",
+        "title": "Always\ncurious.",
+        "body": "About the way things work. And everything beyond work.",
+        "note": "Tanmay Raut / Mumbai → Phoenix",
+        "image": "/images/about/tahoe/tanmay.webp",
+        "alt": "Tanmay beside Lake Tahoe, wearing a black jacket"
+      },
+      "right": {
+        "number": "02",
+        "kicker": "TWO PLACES / ONE STORY",
+        "title": "Mumbai roots.\nPhoenix chapter.",
+        "body": "From Mumbai to Phoenix. A change of continent, and a different view of the world.",
+        "image": "/images/about/gallery/bmw.webp",
+        "alt": "Tanmay beside a car during a road trip",
+        "note": "Somewhere along the way / Road trips",
+        "link": {
+          "href": "/experience",
+          "label": "Work & education → Experience"
+        }
+      }
+    },
+    {
+      "id": "outside-the-lines",
+      "label": "The detours",
+      "left": {
+        "number": "03",
+        "kicker": "COLLECTING PERSPECTIVES",
+        "title": "Take the\nscenic route.",
+        "body": "Sometimes a different perspective is a city from above. Sometimes it means jumping out of a plane.",
+        "photos": [
+          {
+            "image": "/images/about/gallery/skydiving.webp",
+            "alt": "Tanmay during a tandem skydive above the clouds",
+            "label": "01 / Above the clouds",
+            "note": "Skydiving",
+            "shape": "wide"
+          },
+          {
+            "image": "/images/about/gallery/la-skyline.webp",
+            "alt": "Tanmay overlooking the Los Angeles skyline",
+            "label": "02 / A city from above",
+            "note": "Los Angeles",
+            "shape": "wide"
+          }
+        ]
+      },
+      "right": {
+        "number": "04",
+        "kicker": "LESS SCREEN / MORE SKY",
+        "title": "Stay a\nlittle longer.",
+        "body": "Camping under the trees. Looking up at the northern lights. A few things worth stepping away from the desk for.",
+        "photos": [
+          {
+            "image": "/images/about/gallery/northern-lights.webp",
+            "alt": "Tanmay silhouetted beneath the northern lights",
+            "label": "03 / Look up",
+            "note": "Northern lights",
+            "shape": "portrait"
+          },
+          {
+            "image": "/images/about/gallery/camping.webp",
+            "alt": "Tanmay sitting beside a tent among tall trees",
+            "label": "04 / Slow down",
+            "note": "Camping",
+            "shape": "wide"
+          }
+        ]
+      }
+    },
+    {
+      "id": "off-the-clock",
+      "label": "Off the clock",
+      "left": {
+        "number": "05",
+        "kicker": "A DIFFERENT KIND OF LOYALTY",
+        "title": "Barça. Messi.\nMatch day.",
+        "body": "FC Barcelona is the team I follow. Messi is the player I keep coming back to.",
+        "note": "Football / Off the clock",
+        "aside": "Some interests don’t need a productivity angle."
+      },
+      "right": {
+        "number": "06",
+        "kicker": "STILL FOLLOWING THE QUESTION",
+        "title": "Curiosity\ndoesn’t clock out.",
+        "body": "I listen to philosophy, question how I make decisions, and follow ideas far enough to build something from them.",
+        "project": {
+          "title": "My own research desk.",
+          "body": "Markets became a personal trading research platform. A place to investigate patterns, test ideas and follow a question further.",
+          "tools": "Python · FastAPI · React",
+          "href": "/projects/trading-research-desk",
+          "label": "Inside the trading project"
+        },
+        "note": "Listen. Question. Build. Repeat."
+      }
+    }
+  ]
+}
