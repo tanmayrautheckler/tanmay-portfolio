@@ -18,7 +18,8 @@ const securityHeaders = [
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com",
       "img-src 'self' data: blob: https://images.unsplash.com",
-      "connect-src 'self' https://tanmay-portfolio-chatbot.tanmayraut.workers.dev https://vitals.vercel-insights.com https://prod.spline.design https://www.gstatic.com https://unpkg.com",
+      // GLTFLoader decodes embedded, local model textures through blob fetches.
+      "connect-src 'self' blob: https://tanmay-portfolio-chatbot.tanmayraut.workers.dev https://vitals.vercel-insights.com https://prod.spline.design https://www.gstatic.com https://unpkg.com",
       "worker-src 'self' blob:",
       "frame-ancestors 'none'",
     ].join("; "),

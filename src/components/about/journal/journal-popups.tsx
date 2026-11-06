@@ -14,7 +14,7 @@ import {ValorantScene} from './journal-valorant';
 import {SportsSpread} from './journal-sports';
 import {useJournalSurface} from './journal-materials';
 import {Airliner,OutdoorWorld,FootballCinema} from './journal-cinematic';
-import {EMERGENCE_SECONDS,incomingReveal,layerReveal,outgoingReveal,smoothRange,turnProgress,type JournalLayer} from './journal-timeline';
+import {EMERGENCE_SECONDS,OUTDOOR_EMERGENCE_SECONDS,incomingReveal,layerReveal,outdoorLayerReveal,outgoingReveal,smoothRange,turnProgress,type JournalLayer} from './journal-timeline';
 const GOLD='#b89753';
 type Point=[number,number,number];
 type Props={spread:number;replay:number;turn:JournalTurn|null;phase:React.RefObject<{value:number}>;active:boolean;onMemory:(index:number)=>void};
@@ -88,7 +88,8 @@ function Journey({time,onMemory}:{time:React.RefObject<{t:number}>;onMemory:(ind
  </group>;
 }
 
-type LayerTransform={object:THREE.Object3D;layer:JournalLayer;order:number;y:number;scaleY:number;rotationX:number};
+type FadeMaterial={material:THREE.Material;opacity:number;transparent:boolean};
+type LayerTransform={object:THREE.Object3D;layer:JournalLayer;order:number;y:number;scaleY:number;rotationX:number;rotationZ:number;mode:string;depth:number;hingeAxis:string;hingeAngle:number;fades:FadeMaterial[]};
 
 /** A short ink construction on the paper, then the physical world takes over.
  * The lines live in the same 3D space as the sheet, not in a UI overlay. */
@@ -102,6 +103,11 @@ function InkContours({scene,reveal}:{scene:string;reveal:React.RefObject<{value:
    path(Array.from({length:49},(_,i)=>[Math.cos(i/48*Math.PI*2)*.5,Math.sin(i/48*Math.PI*2)*.5]));
   }else if(scene==='formula'){
    for(let ring=0;ring<2;ring++)path(Array.from({length:81},(_,i)=>{const a=i/80*Math.PI*2;return [Math.cos(a)*(2.55-ring*.13)+Math.sin(a*3)*.25,Math.sin(a)*(1.32-ring*.13)+Math.cos(a*2)*.2];}));
+  }else if(scene==='travel'){
+   path(Array.from({length:61},(_,i)=>{const z=-.5+i/60*2.09;return [.08+Math.sin((z+.2)*2.1)*.22,z];}));
+   const route=new THREE.CatmullRomCurve3([new THREE.Vector3(-2.6,0,1.23),new THREE.Vector3(-1.65,0,.97),new THREE.Vector3(-.55,0,1.18),new THREE.Vector3(.45,0,1.28),new THREE.Vector3(1.45,0,1),new THREE.Vector3(2.65,0,1.43)]);
+   path(Array.from({length:61},(_,i)=>{const p=route.getPoint(i/60);return [p.x,p.z];}));
+   path([[-2.7,-.8],[-1.8,-1.45],[-.6,-1.63],[.3,-1.1]]);
   }else{
    for(let line=0;line<9;line++)path(Array.from({length:61},(_,i)=>{const x=-2.83+i/60*5.66;return [x,-1.7+line*.39+Math.sin(x*1.65+line*.37)*.16+Math.cos(x*2.8-line)*.06];}));
   }
@@ -122,19 +128,41 @@ export default function LivingSpread({spread,replay,turn,phase,active,onMemory}:
  const layers=useRef<LayerTransform[]>([]),lastTurn=useRef<number|null>(null),foldFrom=useRef(1);
  const {invalidate}=useThree();
  const scene=content.spreads[spread-1].scene;
+ const outdoors=scene==='travel';
  useEffect(()=>{motion.current.t=0;reveal.current.value=0;invalidate();},[replay,invalidate]);
  useLayoutEffect(()=>{
   if(!world.current)return;
-  const found:LayerTransform[]=[];
+  const found:LayerTransform[]=[],clipped=new Map<THREE.Material,{planes:THREE.Plane[]|null;shadows:boolean;clipping?:boolean}>();
+  const paperPlane=new THREE.Plane(new THREE.Vector3(0,1,0),-.205);
+  const record=(object:THREE.Object3D,layer:JournalLayer):LayerTransform=>{
+   const fades:FadeMaterial[]=[];
+   object.traverse(child=>{
+    if(!(child instanceof THREE.Mesh))return;
+    for(const material of Array.isArray(child.material)?child.material:[child.material]){
+     if(outdoors&&!clipped.has(material)){
+      clipped.set(material,{planes:material.clippingPlanes,shadows:material.clipShadows,clipping:material instanceof THREE.ShaderMaterial?material.clipping:undefined});
+      material.clippingPlanes=[...(material.clippingPlanes??[]),paperPlane];material.clipShadows=true;
+      if(material instanceof THREE.ShaderMaterial)material.clipping=true;
+      material.needsUpdate=true;
+     }
+     if(outdoors&&(layer==='atmosphere'||object.userData.journalReveal==='fade')&&!fades.some(item=>item.material===material))fades.push({material,opacity:material.opacity,transparent:material.transparent});
+    }
+   });
+   return {object,layer,order:Number(object.userData.revealOrder??0),y:object.position.y,scaleY:object.scale.y,rotationX:object.rotation.x,rotationZ:object.rotation.z,mode:String(object.userData.journalReveal??(layer==='atmosphere'?'fade':'rise')),depth:Number(object.userData.journalRiseDepth??(layer==='terrain'?2.25:1.3)),hingeAxis:String(object.userData.journalHingeAxis??'x'),hingeAngle:Number(object.userData.journalHingeAngle??-Math.PI/2),fades};
+  };
   const visit=(object:THREE.Object3D)=>{
    const layer=object.userData.journalLayer as JournalLayer|undefined;
-   if(layer){found.push({object,layer,order:Number(object.userData.revealOrder??0),y:object.position.y,scaleY:object.scale.y,rotationX:object.rotation.x});return;}
+   if(layer){found.push(record(object,layer));return;}
    object.children.forEach(visit);
   };
   visit(world.current);
-  if(!found.length)found.push({object:world.current,layer:'terrain',order:0,y:0,scaleY:1,rotationX:0});
+  if(!found.length)found.push(record(world.current,'terrain'));
   layers.current=found;
- },[scene]);
+  return ()=>{
+   for(const item of found)for(const saved of item.fades){saved.material.opacity=saved.opacity;saved.material.transparent=saved.transparent;if(saved.material instanceof THREE.ShaderMaterial&&saved.material.uniforms.uReveal)saved.material.uniforms.uReveal.value=1;}
+   for(const [material,saved] of clipped){material.clippingPlanes=saved.planes;material.clipShadows=saved.shadows;if(material instanceof THREE.ShaderMaterial)material.clipping=saved.clipping??false;material.needsUpdate=true;}
+  };
+ },[scene,outdoors]);
  useEffect(()=>{if(active)invalidate();},[active,invalidate]);
  useFrame(({pointer},delta)=>{
   if(!root.current||!active)return;
@@ -145,21 +173,35 @@ export default function LivingSpread({spread,replay,turn,phase,active,onMemory}:
    else reveal.current.value=incomingReveal(progress);
   }else{
    lastTurn.current=null;
-   reveal.current.value=Math.min(1,reveal.current.value+Math.min(delta,.25)/EMERGENCE_SECONDS);
+   reveal.current.value=Math.min(1,reveal.current.value+Math.min(delta,outdoors ? .1 : .25)/(outdoors?OUTDOOR_EMERGENCE_SECONDS:EMERGENCE_SECONDS));
   }
   const value=reveal.current.value;
   root.current.visible=value>.0001;
-  root.current.rotation.y=THREE.MathUtils.damp(root.current.rotation.y,pointer.x*.012,5,Math.min(delta,.05));
+  root.current.rotation.y=THREE.MathUtils.damp(root.current.rotation.y,outdoors?0:pointer.x*.012,5,Math.min(delta,.05));
   for(const item of layers.current){
-   const amount=layerReveal(value,item.layer,item.order);
+   const amount=outdoors?outdoorLayerReveal(value,item.layer,item.order):layerReveal(value,item.layer,item.order);
    item.object.visible=amount>.001;
-   item.object.scale.y=item.scaleY*Math.max(.001,amount);
-   item.object.position.y=item.y*amount;
-   item.object.rotation.x=item.rotationX-(1-amount)*.18;
+   if(outdoors){
+    item.object.scale.y=item.scaleY;
+    item.object.position.y=item.y-(item.mode==='rise'?(1-amount)*item.depth:0);
+    item.object.rotation.x=item.rotationX+(item.mode==='hinge'&&item.hingeAxis==='x'?(1-amount)*item.hingeAngle:0);
+    item.object.rotation.z=item.rotationZ+(item.mode==='hinge'&&item.hingeAxis==='z'?(1-amount)*item.hingeAngle:0);
+    const fade=item.object.userData.journalFastFade?Math.min(1,amount*4):amount;
+    for(const saved of item.fades){
+     const material=saved.material,transparent=saved.transparent||fade<.999;
+     material.opacity=saved.opacity*fade;
+     if(material.transparent!==transparent){material.transparent=transparent;material.needsUpdate=true;}
+     if(material instanceof THREE.ShaderMaterial&&material.uniforms.uReveal)material.uniforms.uReveal.value=fade;
+    }
+   }else{
+    item.object.scale.y=item.scaleY*Math.max(.001,amount);
+    item.object.position.y=item.y*amount;
+    item.object.rotation.x=item.rotationX-(1-amount)*.18;
+   }
   }
   // Freeze a departing scene before folding. The incoming scene keeps the same
   // clock and object roots when the sheet commits, so neither can jump/reset.
-  if(value>.62&&(!turn||turn.to===spread))motion.current.t+=Math.min(delta,.05);
+  if(value>(outdoors ? .985 : .62)&&(!turn||turn.to===spread))motion.current.t+=Math.min(delta,.05);
   if(value>.0001||!turn)invalidate();
  });
  return <group ref={root} position={[0,.21,0]} visible={false}>

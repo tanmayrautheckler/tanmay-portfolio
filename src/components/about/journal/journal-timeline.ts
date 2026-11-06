@@ -4,6 +4,7 @@
  */
 export type JournalLayer = 'terrain' | 'actors' | 'atmosphere';
 export const EMERGENCE_SECONDS = 1.7;
+export const OUTDOOR_EMERGENCE_SECONDS = 5.2;
 
 export function clamp01(value: number): number {
   return Math.max(0, Math.min(1, Number.isFinite(value) ? value : 0));
@@ -41,4 +42,12 @@ export function layerReveal(reveal: number, layer: JournalLayer, order = 0): num
   if (layer === 'terrain') return smoothRange(reveal, .12 + delay, .59 + delay);
   if (layer === 'actors') return smoothRange(reveal, .37 + delay, .86 + delay);
   return smoothRange(reveal, .63 + delay, 1);
+}
+
+/** Let the banks settle before water appears, and terrain before people. */
+export function outdoorLayerReveal(reveal: number, layer: JournalLayer, order = 0): number {
+  const delay = Math.min(4, Math.max(0, order)) * .018;
+  if (layer === 'terrain') return smoothRange(reveal, .12 + delay, .53 + delay);
+  if (layer === 'atmosphere') return smoothRange(reveal, .48 + delay, .8 + delay);
+  return smoothRange(reveal, .62 + delay, .9 + delay);
 }

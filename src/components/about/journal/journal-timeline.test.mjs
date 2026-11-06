@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {turnProgress,sheetPhase,outgoingReveal,incomingReveal,layerReveal} from './journal-timeline.ts';
+import {turnProgress,sheetPhase,outgoingReveal,incomingReveal,layerReveal,outdoorLayerReveal} from './journal-timeline.ts';
 const near=(a,b)=>assert.ok(Math.abs(a-b)<1e-9,`${a} != ${b}`);
 
 test('a forward and reverse turn have the same physical choreography',()=>{
@@ -34,4 +34,20 @@ test('terrain precedes actors, and atmosphere arrives last',()=>{
 });
 test('incoming reveal stops short of full scale so commit cannot snap a whole world into view',()=>{
   near(incomingReveal(1),.18);near(incomingReveal(.5),0);
+});
+test('outdoor terrain has settled before any actor unfolds',()=>{
+  for(let p=0;p<=1;p+=.002){
+    if(outdoorLayerReveal(p,'actors',0)>0)near(outdoorLayerReveal(p,'terrain',4),1);
+  }
+});
+test('outdoor layers reverse continuously and conceal before the sheet turns',()=>{
+  for(const layer of ['terrain','actors','atmosphere']){
+    near(outdoorLayerReveal(0,layer,4),0);near(outdoorLayerReveal(1,layer,4),1);
+    let last=0;
+    for(let p=0;p<=1;p+=.005){
+      const amount=outdoorLayerReveal(p,layer,2);
+      assert.ok(amount>=last);last=amount;
+      if(sheetPhase(p,2,3)>0)near(outdoorLayerReveal(outgoingReveal(p),layer,2),0);
+    }
+  }
 });

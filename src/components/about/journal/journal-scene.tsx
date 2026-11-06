@@ -8,12 +8,14 @@ import { Component, Suspense, type ReactNode, useEffect, useLayoutEffect, useMem
 import { Canvas, useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
 import { RoundedBox } from "@react-three/drei/core/RoundedBox";
 import { useTexture } from "@react-three/drei/core/Texture";
+import {useGLTF} from '@react-three/drei/core/Gltf';
 import { gsap } from "gsap";
 import * as THREE from "three";
 import {RoomEnvironment} from 'three/examples/jsm/environments/RoomEnvironment.js';
 import type { JournalDirection, JournalTurn } from "./journal-types";
 import content from "./journal-content";
-import {paperUrls,spreadAssets} from './journal-assets';
+import {paperUrls,spreadAssets,livingModelUrls} from './journal-assets';
+import {ROADSTER_MODEL_URL} from './journal-models';
 import {supportsJournal3D} from "./journal-capabilities";
 import { pagePosition } from "./journal-math";
 import LivingSpread from "./journal-popups";
@@ -98,6 +100,43 @@ function StudioLight(){
   return null;
 }
 
+/** Outdoors uses a warmer side key and quieter fill so granite relief and
+ * ground contact remain legible. Other chapters keep their existing light. */
+function JournalLighting({outdoors,active}:{outdoors:boolean;active:boolean}) {
+  const ambient=useRef<THREE.AmbientLight>(null),sky=useRef<THREE.HemisphereLight>(null);
+  const key=useRef<THREE.DirectionalLight>(null),fill=useRef<THREE.DirectionalLight>(null);
+  const {scene,invalidate}=useThree();
+  useFrame((_,delta)=>{
+    if(!active)return;
+    const dt=Math.min(delta,.1);
+    let settling=false;
+    const blend=(value:number,target:number)=>{
+      if(Math.abs(value-target)<.0001)return target;
+      settling=true;
+      return THREE.MathUtils.damp(value,target,5,dt);
+    };
+    if(ambient.current)ambient.current.intensity=blend(ambient.current.intensity,outdoors ? .16 : .22);
+    if(sky.current)sky.current.intensity=blend(sky.current.intensity,outdoors ? .36 : .3);
+    if(fill.current)fill.current.intensity=blend(fill.current.intensity,outdoors ? .3 : .8);
+    if(key.current){
+      key.current.intensity=blend(key.current.intensity,outdoors ? 2.65 : 2.2);
+      key.current.position.set(
+        blend(key.current.position.x,outdoors ? -3.8 : -3),
+        blend(key.current.position.y,outdoors ? 6.2 : 8),
+        blend(key.current.position.z,outdoors ? 2.4 : -4),
+      );
+    }
+    scene.environmentIntensity=blend(scene.environmentIntensity,outdoors ? .42 : .55);
+    if(settling)invalidate();
+  });
+  return <>
+    <ambientLight ref={ambient} intensity={.22} color="#e9e1d2"/>
+    <hemisphereLight ref={sky} intensity={.3} color="#e7edf2" groundColor="#655444"/>
+    <directionalLight ref={key} position={[-3,8,-4]} intensity={2.2} color="#fff3e2" castShadow shadow-mapSize={[2048,2048]} shadow-camera-left={-5} shadow-camera-right={5} shadow-camera-top={5} shadow-camera-bottom={-5} shadow-bias={-.00015} shadow-normalBias={.004} shadow-radius={3}/>
+    <directionalLight ref={fill} position={[5,5,5]} intensity={.8} color="#d9e4ef"/>
+  </>;
+}
+
 function PrintedPage({ map, side }: { map: THREE.Texture; side: 'left' | 'right' }) {
   return <mesh position={[side === 'left' ? -WIDTH / 2 : WIDTH / 2, PAGE_Y, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
     <planeGeometry args={[WIDTH, HEIGHT, 12, 12]} />
@@ -175,11 +214,21 @@ function PrepareTexture({url}:{url:string}) {
   useTexture(url);
   return null;
 }
+function PrepareModel({url}:{url:string}) {
+  const {materials}=useGLTF(url);
+  // GLTFLoader resolves even when an embedded image fails. Do not report a
+  // white, untextured vehicle as ready merely because its geometry arrived.
+  if(url===ROADSTER_MODEL_URL){
+    const atlas=materials.Roadster_PBR_atlas as THREE.MeshPhysicalMaterial|undefined;
+    if(!atlas?.map||!atlas.metalnessMap||!atlas.roughnessMap||!atlas.clearcoatMap)throw new Error('Journal vehicle textures could not load.');
+  }
+  return null;
+}
 function SpreadReady({spread,onReady}:{spread:number;onReady:(loaded:number[])=>void}) {
   useEffect(()=>onReady([spread]),[spread,onReady]);return null;
 }
 function PreparePaper({spread,onReady}:{spread:number;onReady:(loaded:number[])=>void}) {
-  return <>{spreadAssets(spread).map(url=><PrepareTexture key={url} url={url}/>)}<SpreadReady spread={spread} onReady={onReady}/></>;
+  return <>{spreadAssets(spread).map(url=><PrepareTexture key={url} url={url}/>)}{livingModelUrls(spread).map(url=><PrepareModel key={url} url={url}/>)}<SpreadReady spread={spread} onReady={onReady}/></>;
 }
 
 function BookPaper({spread,turn,motion,living}:{spread:number;turn:JournalTurn|null;motion:React.RefObject<{value:number}>;living:boolean}) {
@@ -424,10 +473,7 @@ function World(props: Props) {
   return <>
     <color attach="background" args={['#261e18']} />
     <StudioLight/>
-    <ambientLight intensity={.22} color="#e9e1d2" />
-    <hemisphereLight intensity={.3} color="#e7edf2" groundColor="#655444"/>
-    <directionalLight position={[-3,8,-4]} intensity={2.2} color="#fff3e2" castShadow shadow-mapSize={[2048,2048]} shadow-camera-left={-5} shadow-camera-right={5} shadow-camera-top={5} shadow-camera-bottom={-5} shadow-bias={-.00015} shadow-normalBias={.004} shadow-radius={3} />
-    <directionalLight position={[5,5,5]} intensity={.8} color="#d9e4ef" />
+    <JournalLighting outdoors={props.living&&content.spreads[props.spread-1]?.scene==='travel'} active={active}/>
     <CameraRig open={props.spread > 0 || !!props.turn} living={props.living} active={active}/>
     <Suspense fallback={null}><Desk/><Book {...props} active={active}/></Suspense>
   </>;
@@ -450,6 +496,7 @@ export default function JournalScene(props: Props) {
     gl={{antialias:true,alpha:false,powerPreference:'default'}}
     onCreated={({gl,invalidate}) => {
       gl.toneMapping = THREE.ACESFilmicToneMapping;
+      gl.localClippingEnabled = true;
       gl.toneMappingExposure = .95;
       invalidate();
     }}
