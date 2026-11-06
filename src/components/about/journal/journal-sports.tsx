@@ -8,6 +8,8 @@ import Athlete from './journal-athlete';
 import {useJournalSurface} from './journal-materials';
 import {PickleballBall, PickleballPaddle} from './journal-pickleball-equipment';
 import {PICKLEBALL_BALL_RADIUS, samplePickleballRally} from './journal-pickleball-motion';
+import {TABLE_TENNIS_BALL_RADIUS, sampleTableTennisRally} from './journal-table-tennis-motion';
+import {SOCCER_BALL_RADIUS, sampleSoccerShot, soccerGoalNetPoint} from './journal-soccer-motion';
 
 type Time = {time: React.RefObject<{t: number}>};
 type Point = [number, number, number];
@@ -24,15 +26,21 @@ function Pole({from, to, radius = .015, color = STEEL, metalness = .7}: {from: P
   return <mesh position={transform.center} quaternion={transform.rotation} castShadow><cylinderGeometry args={[radius, radius, transform.length, 10]}/><meshStandardMaterial color={color} metalness={metalness} roughness={.38}/></mesh>;
 }
 
-function netGeometry(width: number, height: number, columns: number, rows: number, depth = 0) {
-  const points: number[] = [];
-  const at = (u: number, v: number) => {
-    const slack = Math.sin(u * Math.PI) * Math.sin(v * Math.PI);
-    return [(u - .5) * width, v * height - slack * .018, depth * v - slack * .035];
+function goalNetGeometry() {
+  const points: number[] = [], coordinates: number[] = [], columns = 18, rows = 9;
+  const vertex = (u: number, v: number) => {
+    points.push(...soccerGoalNetPoint(u, v)); coordinates.push(u, v);
   };
-  for (let x = 0; x <= columns; x++) for (let y = 0; y < rows; y++) points.push(...at(x / columns, y / rows), ...at(x / columns, (y + 1) / rows));
-  for (let y = 0; y <= rows; y++) for (let x = 0; x < columns; x++) points.push(...at(x / columns, y / rows), ...at((x + 1) / columns, y / rows));
-  const geometry = new THREE.BufferGeometry(); geometry.setAttribute('position', new THREE.Float32BufferAttribute(points, 3)); return geometry;
+  for (let x = 0; x <= columns; x++) for (let y = 0; y < rows; y++) {
+    vertex(x / columns, y / rows); vertex(x / columns, (y + 1) / rows);
+  }
+  for (let y = 0; y <= rows; y++) for (let x = 0; x < columns; x++) {
+    vertex(x / columns, y / rows); vertex((x + 1) / columns, y / rows);
+  }
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(points, 3).setUsage(THREE.DynamicDrawUsage));
+  geometry.setAttribute('clothUv', new THREE.Float32BufferAttribute(coordinates, 2));
+  return geometry;
 }
 
 function useGroundArtwork(kind: 'court' | 'field' | 'rubber') {
@@ -159,6 +167,17 @@ function TableTennisPaddle() {
   </group>;
 }
 
+function TableTennisRallyBall({time}: Time) {
+  const ball = useRef<THREE.Group>(null);
+  useFrame(() => {
+    if (!ball.current) return;
+    ball.current.position.set(...sampleTableTennisRally(time.current.t).ball.position);
+  });
+  return <group userData={{...PEOPLE, revealOrder: 3}} name='table-tennis-rally'>
+    <group ref={ball}><mesh castShadow><sphereGeometry args={[TABLE_TENNIS_BALL_RADIUS, 16, 12]}/><meshStandardMaterial color='#f0ead6' roughness={.75}/></mesh></group>
+  </group>;
+}
+
 function TableTennis({time}: Time) {
   const net = useMemo(() => {
     const points: number[] = [], width = .60, height = .072;
@@ -190,17 +209,18 @@ function TableTennis({time}: Time) {
       </group>)}
       <lineSegments geometry={net}><lineBasicMaterial color='#364639' transparent opacity={.52}/></lineSegments>
       <Pole from={[-.30, .432, 0]} to={[.30, .432, 0]} radius={.0025} color={CREAM} metalness={0}/>
-      <mesh position={[.07, .373, .25]} castShadow><sphereGeometry args={[.012, 16, 12]}/><meshStandardMaterial color='#f0ead6' roughness={.75}/></mesh>
     </group>
     <group userData={PEOPLE} name='table-tennis-players'>
-      <Athlete time={time} activity='racket' racketPose='ready' position={[-2.43, .08, -1.22]} scale={.83} shirt='#8a9d84' trousers='#314d3e' equipment={<TableTennisPaddle/>}/>
-      <Athlete time={time} activity='racket' racketPose='ready' position={[-2.43, .08, .36]} angle={Math.PI} scale={.83} shirt='#c1ac89' trousers='#34463c' equipment={<TableTennisPaddle/>}/>
+      <Athlete time={time} activity='racket' racketPose='table-tennis-back' position={[-2.43, .08, -1.22]} scale={.83} shirt='#8a9d84' trousers='#314d3e' equipment={<TableTennisPaddle/>}/>
+      <Athlete time={time} activity='racket' racketPose='table-tennis-front' position={[-2.43, .08, .36]} angle={Math.PI} scale={.83} shirt='#c1ac89' trousers='#34463c' equipment={<TableTennisPaddle/>}/>
     </group>
+    <TableTennisRallyBall time={time}/>
   </>;
 }
 
-function Goal() {
-  const net = useMemo(() => netGeometry(1.25, .61, 18, 9, .04), []);
+function Goal({time}: Time) {
+  const net = useMemo(() => goalNetGeometry(), []);
+  const previousDisplacement = useRef(Number.NaN);
   const sideNet = useMemo(() => {
     const positions: number[] = [];
     for (let i = 0; i <= 9; i++) {
@@ -217,6 +237,16 @@ function Goal() {
     const geometry = new THREE.BufferGeometry(); geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3)); return geometry;
   }, []);
   useEffect(() => () => { net.dispose(); roof.dispose(); sideNet.dispose(); }, [net, roof, sideNet]);
+  useFrame(() => {
+    const displacement = sampleSoccerShot(time.current.t).net.displacement;
+    if (Math.abs(displacement - previousDisplacement.current) < 1e-7) return;
+    const positions = net.getAttribute('position'), coordinates = net.getAttribute('clothUv');
+    for (let i = 0; i < positions.count; i++) {
+      positions.setXYZ(i, ...soccerGoalNetPoint(coordinates.getX(i), coordinates.getY(i), displacement));
+    }
+    positions.needsUpdate = true;
+    previousDisplacement.current = displacement;
+  });
   return <group position={[1.85, .08, -1.09]}>
     {[-.625, .625].map(x => <group key={x}>
       <Pole from={[x, 0, 0]} to={[x, .61, 0]} radius={.021} color={CREAM} metalness={.15}/>
@@ -246,8 +276,8 @@ function CricketBat() {
   </group>;
 }
 
-function FieldBalls({time}: Time) {
-  const football = useRef<THREE.Mesh>(null), cricket = useRef<THREE.Mesh>(null);
+function SoccerBall({time}: Time) {
+  const football = useRef<THREE.Mesh>(null), material = useRef<THREE.MeshStandardMaterial>(null);
   const texture = useMemo(() => {
     const canvas = document.createElement('canvas'); canvas.width = 512; canvas.height = 256;
     const c = canvas.getContext('2d')!; c.fillStyle = '#e9e6d5'; c.fillRect(0, 0, 512, 256);
@@ -260,13 +290,27 @@ function FieldBalls({time}: Time) {
   }, []);
   useEffect(() => () => texture.dispose(), [texture]);
   useFrame(() => {
-    const cycle = (time.current.t * 1.35 / (Math.PI * 2)) % 1;
-    const shot = THREE.MathUtils.clamp((cycle - .25) / .45, 0, 1);
-    if (football.current) { football.current.position.set(1.78, .147, .30 - shot * 1.42); football.current.rotation.x = -time.current.t * 3; }
-    if (cricket.current) { const pass = (time.current.t / 4.4) % 1; cricket.current.position.set(.62, .11, -.95 + pass * 1.25); }
+    if (!football.current || !material.current) return;
+    const {ball} = sampleSoccerShot(time.current.t);
+    football.current.position.set(...ball.position);
+    football.current.rotation.set(...ball.spin);
+    football.current.visible = ball.opacity > 0;
+    football.current.castShadow = ball.opacity > .98;
+    material.current.opacity = ball.opacity;
   });
   return <group userData={{...PEOPLE, revealOrder: 3}}>
-    <mesh ref={football} castShadow><sphereGeometry args={[.065, 24, 16]}/><meshStandardMaterial map={texture} roughness={.8}/></mesh>
+    <mesh ref={football} name='soccer-ball' position={[1.78, .143, .30]} castShadow><sphereGeometry args={[SOCCER_BALL_RADIUS, 24, 16]}/><meshStandardMaterial ref={material} map={texture} roughness={.8} transparent depthWrite={false}/></mesh>
+  </group>;
+}
+
+function CricketBall({time}: Time) {
+  const cricket = useRef<THREE.Mesh>(null);
+  useFrame(() => {
+    if (!cricket.current) return;
+    const pass = (time.current.t / 4.4) % 1;
+    cricket.current.position.set(.62, .11, -.95 + pass * 1.25);
+  });
+  return <group userData={{...PEOPLE, revealOrder: 3}}>
     <mesh ref={cricket} castShadow><sphereGeometry args={[.03, 12, 8]}/><meshStandardMaterial color='#915445' roughness={.65}/></mesh>
   </group>;
 }
@@ -297,15 +341,15 @@ function GymEquipment() {
 }
 
 export function SportsSpread({time}: Time) {
-  // Other activities stay between points while the first rally is reviewed.
+  // Cricket and gym activities stay between points while the practice actions play.
   const stillTime = useRef({t: 10 * Math.PI / 1.7});
   return <>
     <RecreationGround/>
     <PickleballNet/>
     <CourtBench/>
-    <TableTennis time={stillTime}/>
+    <TableTennis time={time}/>
     <group userData={EQUIPMENT}>
-      <Goal/>
+      <Goal time={time}/>
       <CricketWicket position={[.62, .08, -.95]}/>
       <CricketWicket position={[.62, .08, .70]}/>
     </group>
@@ -313,11 +357,12 @@ export function SportsSpread({time}: Time) {
     <group userData={PEOPLE}>
       <Athlete time={time} activity='racket' racketPose='pickleball-front' position={[-1.42, .08, .52]} angle={Math.PI} scale={.83} shirt='#d8dfce' trousers='#345345' equipment={<PickleballPaddle/>}/>
       <Athlete time={time} activity='racket' racketPose='pickleball-back' position={[-1.84, .08, -1.04]} scale={.83} shirt='#ad9671' equipment={<PickleballPaddle/>}/>
-      <Athlete time={stillTime} activity='kick' position={[1.9, .08, .45]} angle={Math.PI} scale={.91} shirt='#e0ddc9' trousers='#4b6852'/>
+      <Athlete time={time} activity='kick' soccerPose='shot' position={[1.9, .08, .45]} angle={Math.PI} scale={.91} shirt='#e0ddc9' trousers='#4b6852'/>
       <Athlete time={stillTime} activity='bat' position={[.62, .08, .37]} angle={Math.PI} scale={.85} shirt='#eee8d6' trousers='#ddd6c1' equipment={<CricketBat/>}/>
       <Athlete time={stillTime} activity='lift' position={[.15, .085, 1.29]} scale={.94} shirt='#a88d67' trousers='#293d34' skin='#a97751'/>
     </group>
     <PickleballRallyBall time={time}/>
-    <FieldBalls time={stillTime}/>
+    <SoccerBall time={time}/>
+    <CricketBall time={stillTime}/>
   </>;
 }

@@ -5,6 +5,8 @@ import {useFrame} from '@react-three/fiber';
 import * as THREE from 'three';
 import type {ReactNode} from 'react';
 import {samplePickleballRally} from './journal-pickleball-motion';
+import {sampleTableTennisRally} from './journal-table-tennis-motion';
+import {sampleSoccerShot} from './journal-soccer-motion';
 
 type Point = [number, number, number];
 type Activity = 'racket' | 'kick' | 'bat' | 'lift';
@@ -19,7 +21,8 @@ type Props = {
   trousers?: string;
   skin?: string;
   equipment?: ReactNode;
-  racketPose?: 'ready' | 'pickleball-front' | 'pickleball-back';
+  racketPose?: 'ready' | 'pickleball-front' | 'pickleball-back' | 'table-tennis-front' | 'table-tennis-back';
+  soccerPose?: 'shot';
 };
 const UP = new THREE.Vector3(0, 1, 0);
 const LIMBS = ['leftUpperArm', 'leftForearm', 'rightUpperArm', 'rightForearm', 'leftThigh', 'leftShin', 'rightThigh', 'rightShin'] as const;
@@ -41,7 +44,7 @@ function jerseyGeometry() {
 
 /** Adult-proportioned, articulated sporting figure. Limbs follow joint positions,
  * rather than swinging a single rigid cylinder from the shoulder or hip. */
-export default function Athlete({time, activity, position, angle = 0, phase = 0, scale = 1, shirt = '#e2dfce', trousers = '#283b34', skin = '#bb8861', equipment, racketPose}: Props) {
+export default function Athlete({time, activity, position, angle = 0, phase = 0, scale = 1, shirt = '#e2dfce', trousers = '#283b34', skin = '#bb8861', equipment, racketPose, soccerPose}: Props) {
   const limbs = useRef<Partial<Record<LimbName, THREE.Mesh>>>({});
   const joints = useRef<Record<string, THREE.Mesh>>({});
   const torso = useRef<THREE.Mesh>(null), pelvis = useRef<THREE.Mesh>(null), head = useRef<THREE.Group>(null);
@@ -61,10 +64,15 @@ export default function Athlete({time, activity, position, angle = 0, phase = 0,
   useEffect(() => () => { geometry.dispose(); Object.values(materials).forEach(material => material.dispose()); }, [geometry, materials]);
   useFrame(() => {
     const t = time.current.t + phase, wave = Math.sin(t * 1.7), action = (Math.sin(t * 1.35) + 1) / 2;
-    const rallyRole = racketPose === 'pickleball-front' ? 'front' : racketPose === 'pickleball-back' ? 'back' : null;
-    const rally = activity === 'racket' && rallyRole ? samplePickleballRally(time.current.t).players[rallyRole] : null;
+    const pickleballRole = racketPose === 'pickleball-front' ? 'front' : racketPose === 'pickleball-back' ? 'back' : null;
+    const tableTennisRole = racketPose === 'table-tennis-front' ? 'front' : racketPose === 'table-tennis-back' ? 'back' : null;
+    const rally = activity === 'racket'
+      ? pickleballRole ? samplePickleballRally(time.current.t).players[pickleballRole]
+        : tableTennisRole ? sampleTableTennisRally(time.current.t).players[tableTennisRole] : null
+      : null;
+    const soccer = activity === 'kick' && soccerPose === 'shot' ? sampleSoccerShot(time.current.t).player : null;
     const ready = activity === 'racket' && racketPose === 'ready';
-    const crouch = rally?.crouch ?? (ready ? .015 : activity === 'racket' ? .025 * (wave + 1) / 2 : activity === 'bat' ? .027 : .005);
+    const crouch = rally?.crouch ?? soccer?.crouch ?? (ready ? .015 : activity === 'racket' ? .025 * (wave + 1) / 2 : activity === 'bat' ? .027 : .005);
     const hipY = .53 - crouch, shoulderY = .785 - crouch;
     const ls: Point = [-.145, shoulderY, 0], rs: Point = [.145, shoulderY, 0];
     const lh: Point = [-.082, hipY, 0], rh: Point = [.082, hipY, 0];
@@ -99,6 +107,12 @@ export default function Athlete({time, activity, position, angle = 0, phase = 0,
       le = [-.25, .70, -.02]; lw = [-.31, .70, .14]; re = [.24, .65, -.04]; rw = [.31, .59, -.13];
       lk = [-.11, .285, .04]; rk = [.13, .29 + kick * .035, .07 + kick * .13];
       la = [-.105, .062, 0]; ra = [.13, .062 + kick * .045, .05 + kick * .29];
+      if (soccer) {
+        le = soccer.leftElbow; lw = soccer.leftWrist;
+        re = soccer.rightElbow; rw = soccer.rightWrist;
+        lk = soccer.leftKnee; la = soccer.leftAnkle;
+        rk = soccer.rightKnee; ra = soccer.rightAnkle;
+      }
     } else if (activity === 'bat') {
       le = [-.16, .64, .15]; re = [.17, .64, .14];
       rw = [.07 + wave * .07, .63 + action * .11, .27]; lw = [rw[0] - .065, rw[1] + .01, rw[2] + .015];
@@ -125,11 +139,11 @@ export default function Athlete({time, activity, position, angle = 0, phase = 0,
     }
     if (torso.current) torso.current.position.y = -crouch;
     if (pelvis.current) pelvis.current.position.y = .535 - crouch;
-    if (head.current) { head.current.position.y = -crouch; head.current.rotation.y = rally?.headYaw ?? (activity === 'racket' && !ready ? wave * .08 : 0); }
+    if (head.current) { head.current.position.y = -crouch; head.current.rotation.y = rally?.headYaw ?? soccer?.headYaw ?? (activity === 'racket' && !ready ? wave * .08 : 0); }
     if (leftHand.current) leftHand.current.position.set(...lw);
     if (rightHand.current) { rightHand.current.position.set(...rw); rightHand.current.rotation.set(wristX, wristY, wristZ); }
     if (leftShoe.current) leftShoe.current.position.set(la[0], la[1] - .032, la[2] + .035);
-    if (rightShoe.current) { rightShoe.current.position.set(ra[0], ra[1] - .032, ra[2] + .035); rightShoe.current.rotation.x = activity === 'kick' ? -action * .38 : 0; }
+    if (rightShoe.current) { rightShoe.current.position.set(ra[0], ra[1] - .032, ra[2] + .035); rightShoe.current.rotation.x = soccer?.rightShoePitch ?? (activity === 'kick' ? -action * .38 : 0); }
   });
   return <group position={position} rotation={[0, angle, 0]} scale={scale}>
     <mesh ref={torso} geometry={geometry} material={materials.fabric} castShadow/>
