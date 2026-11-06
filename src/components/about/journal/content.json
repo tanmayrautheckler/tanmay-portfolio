@@ -11,7 +11,9 @@
         "body": "About the way things work. And everything beyond work.",
         "note": "Tanmay Raut / Mumbai → Phoenix",
         "image": "/images/about/tahoe/tanmay.webp",
-        "alt": "Tanmay beside Lake Tahoe, wearing a black jacket"
+        "alt": "Tanmay beside Lake Tahoe, wearing a black jacket",
+        "texture": "person",
+        "kind": "intro"
       },
       "right": {
         "number": "02",
@@ -24,8 +26,16 @@
         "link": {
           "href": "/experience",
           "label": "Work & education → Experience"
-        }
-      }
+        },
+        "texture": "journey",
+        "kind": "roots"
+      },
+      "summary": "Two places. One story.",
+      "link": {
+        "href": "/experience",
+        "label": "The full career story"
+      },
+      "scene": "journey"
     },
     {
       "id": "outside-the-lines",
@@ -50,7 +60,9 @@
             "note": "Los Angeles",
             "shape": "wide"
           }
-        ]
+        ],
+        "texture": "outside",
+        "kind": "travel"
       },
       "right": {
         "number": "04",
@@ -72,25 +84,137 @@
             "note": "Camping",
             "shape": "wide"
           }
+        ],
+        "texture": "after-dark",
+        "kind": "travel"
+      },
+      "summary": "Four moments. Four different perspectives.",
+      "scene": "travel"
+    },
+    {
+      "id": "always-moving",
+      "label": "In motion",
+      "scene": "sports",
+      "summary": "Different games. Same need to keep moving.",
+      "left": {
+        "number": "05",
+        "kind": "sports",
+        "texture": "sports",
+        "kicker": "ON THE COURT / ON THE FIELD",
+        "title": "Always\nmoving.",
+        "body": "I play badminton, pickleball, soccer and cricket. Different games, different rhythms, and time well spent away from a screen.",
+        "note": "Badminton · Pickleball · Soccer · Cricket",
+        "topics": [
+          "Badminton",
+          "Pickleball",
+          "Soccer",
+          "Cricket"
+        ]
+      },
+      "right": {
+        "number": "06",
+        "kind": "fitness",
+        "texture": "fitness",
+        "kicker": "OFF THE CLOCK / AT THE GYM",
+        "title": "Room for\none more rep.",
+        "body": "Going to the gym is part of my time outside work, too. Some days it is a game; some days it is a workout.",
+        "note": "Different games. Same need to keep moving.",
+        "topics": [
+          "Gym",
+          "Movement",
+          "Training"
         ]
       }
     },
     {
-      "id": "off-the-clock",
-      "label": "Off the clock",
+      "id": "match-day",
+      "label": "Football",
+      "scene": "football",
       "left": {
-        "number": "05",
+        "number": "07",
         "kicker": "A DIFFERENT KIND OF LOYALTY",
         "title": "Barça. Messi.\nMatch day.",
         "body": "FC Barcelona is the team I follow. Messi is the player I keep coming back to.",
         "note": "Football / Off the clock",
-        "aside": "Some interests don’t need a productivity angle."
+        "aside": "Some interests don’t need a productivity angle.",
+        "texture": "matchday",
+        "kind": "football"
       },
       "right": {
-        "number": "06",
-        "kicker": "STILL FOLLOWING THE QUESTION",
-        "title": "Curiosity\ndoesn’t clock out.",
-        "body": "I listen to philosophy, question how I make decisions, and follow ideas far enough to build something from them.",
+        "kind": "stadium",
+        "texture": "camp-nou",
+        "kicker": "A PLACE IN THE STORY",
+        "title": "Under the\nfloodlights.",
+        "body": "FC Barcelona. Lionel Messi. The game I keep coming back to.",
+        "note": "A football scene / Not a visit or match report",
+        "topics": [
+          "FC Barcelona",
+          "Messi",
+          "Camp Nou"
+        ],
+        "number": "08"
+      },
+      "summary": "Barça, Messi, and match day."
+    },
+    {
+      "id": "race-weekends",
+      "label": "Formula 1",
+      "scene": "formula",
+      "left": {
+        "number": "09",
+        "kind": "formula",
+        "texture": "formula",
+        "kicker": "ANOTHER KIND OF MATCH DAY",
+        "title": "Lights out.\nWeekend on.",
+        "body": "I follow Formula 1. Another kind of match day, with a circuit instead of a pitch.",
+        "note": "F1 / Race weekends",
+        "topics": [
+          "Pace",
+          "Pit stops",
+          "Race weekends"
+        ]
+      },
+      "right": {
+        "kind": "formula",
+        "texture": "race-weekend",
+        "kicker": "ANOTHER KIND OF MATCH DAY",
+        "title": "Every second.\nEvery decision.",
+        "body": "A race weekend brings a different rhythm: the circuit, the pit lane, and the next lap.",
+        "note": "Formula 1 / Race weekends",
+        "topics": [
+          "The circuit",
+          "The pit lane",
+          "The next lap"
+        ],
+        "number": "10"
+      },
+      "summary": "From lights out to the next lap."
+    },
+    {
+      "id": "market-notes",
+      "label": "Stocks",
+      "scene": "markets",
+      "left": {
+        "number": "11",
+        "kind": "stocks",
+        "texture": "stocks",
+        "kicker": "FOLLOWING THE MARKETS",
+        "title": "Beyond\nthe ticker.",
+        "body": "I follow stocks and markets. Watching what changes, following the news, and trying to understand what sits behind a move.",
+        "note": "Stocks / Personal interest",
+        "topics": [
+          "Markets",
+          "News",
+          "Research"
+        ]
+      },
+      "right": {
+        "number": "12",
+        "kind": "research",
+        "texture": "research",
+        "kicker": "WHEN AN INTEREST BECOMES AN EXPERIMENT",
+        "title": "Following\na question.",
+        "body": "Markets became a personal trading research platform. A place to investigate patterns, test ideas and follow a question further.",
         "project": {
           "title": "My own research desk.",
           "body": "Markets became a personal trading research platform. A place to investigate patterns, test ideas and follow a question further.",
@@ -98,8 +222,147 @@
           "href": "/projects/trading-research-desk",
           "label": "Inside the trading project"
         },
-        "note": "Listen. Question. Build. Repeat."
+        "note": "A personal trading research platform",
+        "topics": [
+          "Python",
+          "FastAPI",
+          "React"
+        ]
+      },
+      "summary": "Following markets became something I built.",
+      "link": {
+        "href": "/projects/trading-research-desk",
+        "label": "Inside my trading project"
       }
+    },
+    {
+      "id": "world-watch",
+      "label": "World news",
+      "scene": "world",
+      "left": {
+        "number": "13",
+        "kind": "geopolitics",
+        "texture": "geopolitics",
+        "kicker": "THE WORLD OUTSIDE MY WINDOW",
+        "title": "A wider\nview.",
+        "body": "I follow geopolitical news: events, decisions, and how they connect across countries. There is always more context behind a headline.",
+        "note": "Geopolitical news",
+        "topics": [
+          "Events",
+          "Context",
+          "Connections"
+        ]
+      },
+      "right": {
+        "kind": "geopolitics",
+        "texture": "context",
+        "kicker": "BEYOND THE HEADLINE",
+        "title": "The context\nbehind it.",
+        "body": "I follow geopolitical news to understand how events and decisions connect across countries.",
+        "note": "News / Events / Context",
+        "topics": [
+          "Events",
+          "Context",
+          "Connections"
+        ],
+        "number": "14"
+      },
+      "summary": "Headlines, context, and a wider view."
+    },
+    {
+      "id": "one-more-round",
+      "label": "Valorant",
+      "scene": "valorant",
+      "left": {
+        "number": "15",
+        "kind": "valorant",
+        "texture": "valorant",
+        "kicker": "SWITCHING GEARS",
+        "title": "One more\nround.",
+        "body": "Valorant is part of my time away from work. A different world to step into, one round at a time.",
+        "note": "Valorant / Off the clock",
+        "topics": [
+          "Valorant",
+          "One more round"
+        ]
+      },
+      "right": {
+        "kind": "valorant",
+        "texture": "next-round",
+        "kicker": "AWAY FROM THE DESK",
+        "title": "A different\nkind of focus.",
+        "body": "Valorant is one of the worlds I step into outside work. One round at a time.",
+        "note": "Valorant / Off the clock",
+        "topics": [
+          "Focus",
+          "The next round"
+        ],
+        "number": "16"
+      },
+      "summary": "One more round, away from work."
+    },
+    {
+      "id": "one-more-scene",
+      "label": "Movies",
+      "scene": "cinema",
+      "left": {
+        "number": "17",
+        "kind": "movies",
+        "texture": "movies",
+        "kicker": "ROOM FOR A GOOD STORY",
+        "title": "One more\nscene.",
+        "body": "I enjoy movies. Sometimes a story is a good enough reason to step away from everything else.",
+        "note": "Movies / Story, light, sound",
+        "topics": [
+          "Story",
+          "Light",
+          "Sound"
+        ]
+      },
+      "right": {
+        "kind": "movies",
+        "texture": "cinema",
+        "kicker": "ROOM FOR A GOOD STORY",
+        "title": "Let the\nworld wait.",
+        "body": "A movie, a different world, and a reason to switch off for a while.",
+        "note": "Movies / Off the clock",
+        "topics": [
+          "Story",
+          "Light",
+          "Sound"
+        ],
+        "number": "18"
+      },
+      "summary": "A story worth switching off for."
+    },
+    {
+      "id": "still-curious",
+      "label": "Curiosity",
+      "scene": "curiosity",
+      "left": {
+        "number": "19",
+        "kicker": "STILL FOLLOWING THE QUESTION",
+        "title": "Curiosity\ndoesn’t clock out.",
+        "body": "I listen to philosophy, question how I make decisions, and follow ideas far enough to build something from them.",
+        "note": "Listen. Question. Build. Repeat.",
+        "kind": "philosophy",
+        "texture": "philosophy"
+      },
+      "right": {
+        "kind": "philosophy",
+        "texture": "questions",
+        "kicker": "STILL FOLLOWING THE QUESTION",
+        "title": "Room to\nlook again.",
+        "body": "I listen to philosophy and ideas that make me question how I think and make decisions.",
+        "note": "Listen. Question. Look again.",
+        "topics": [
+          "Listen",
+          "Question",
+          "Look again"
+        ],
+        "number": "20"
+      },
+      "summary": "Listening, questioning, and following an idea."
     }
   ]
 }

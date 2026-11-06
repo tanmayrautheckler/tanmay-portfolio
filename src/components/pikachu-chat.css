@@ -1,4 +1,4 @@
-.pika-chat{--pika-yellow:#f8d44c;--pika-ink:#3b3022;--pika-size:120px}
+.pika-chat{--pika-yellow:#f8d44c;--pika-ink:#3b3022;--pika-size:120px;--pika-top-clearance:80px}
 .pika-launcher.pika-launcher{height:var(--pika-size);width:var(--pika-size);max-width:calc(100vw - 30px);padding:0;border:0;background:transparent!important;position:relative;display:flex;align-items:center;gap:0;border-radius:30px;isolation:isolate;color:var(--foreground)}
 .pika-launcher-character{display:block;width:var(--pika-size);height:var(--pika-size);pointer-events:none;transform-origin:50% 90%;transition:transform 200ms cubic-bezier(.23,1,.32,1)}
 .pika-launcher-spark{position:absolute;right:0;top:12px;width:22px;height:22px;border:1px solid #f7d74c66;border-radius:50%;display:grid;place-items:center;background:var(--background);color:#dcae28;opacity:0;transform:translateY(4px);transition:opacity 160ms ease,transform 160ms ease}
@@ -6,7 +6,7 @@
 .pika-header-avatar{width:45px;height:45px;border-radius:14px;background:#f8d44c14;display:grid;place-items:center}
 .pika-welcome>p{color:var(--foreground);line-height:1.8}
 .pika-welcome-kicker{font:8px monospace;letter-spacing:.1em;display:flex;align-items:center;gap:8px;color:#b08d28;margin-bottom:13px}
-.pika-chat #portfolio-assistant{bottom:calc(var(--pika-size) + 32px);max-height:calc(100dvh - var(--pika-size) - 48px);border-color:color-mix(in srgb,#e8c948 24%,var(--border));box-shadow:0 20px 65px #0004}
+.pika-chat #portfolio-assistant{bottom:calc(var(--pika-size) + 32px);max-height:calc(100vh - var(--pika-size) - 32px - var(--pika-top-clearance));max-height:calc(100dvh - var(--pika-size) - 32px - var(--pika-top-clearance));border-color:color-mix(in srgb,#e8c948 24%,var(--border));box-shadow:0 20px 65px #0004}
 .pika-chat #portfolio-assistant:before{content:"";position:absolute;top:0;left:20px;right:20px;height:2px;background:linear-gradient(90deg,transparent,#e9c745,transparent);pointer-events:none}
 .pika-chat form button[type=submit]{background:#f8d44c;color:#392d20}
 .pika-thinking{display:flex;align-items:center;gap:9px;font-size:11px;color:var(--text-secondary)}
@@ -59,7 +59,7 @@
 @media(max-height:540px){
  .pika-chat{--pika-size:72px}
 
- .pika-chat #portfolio-assistant{bottom:12px;max-height:calc(100dvh - 24px)}
+ .pika-chat #portfolio-assistant{bottom:12px;max-height:calc(100vh - 12px - var(--pika-top-clearance));max-height:calc(100dvh - 12px - var(--pika-top-clearance))}
 
  .pika-chat[data-open=true] .pika-launcher{visibility:hidden}
 

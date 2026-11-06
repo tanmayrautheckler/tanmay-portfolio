@@ -4,15 +4,20 @@
  * inside the render loop. These objects are not React state. */
 /* eslint-disable react-hooks/immutability */
 
-import { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { Component, Suspense, type ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
-import { RoundedBox, useTexture } from "@react-three/drei";
+import { RoundedBox } from "@react-three/drei/core/RoundedBox";
+import { useTexture } from "@react-three/drei/core/Texture";
 import { gsap } from "gsap";
 import * as THREE from "three";
+import {RoomEnvironment} from 'three/examples/jsm/environments/RoomEnvironment.js';
 import type { JournalDirection, JournalTurn } from "./journal-types";
-import content from "./content.json";
+import content from "./journal-content";
+import {paperUrls,spreadAssets} from './journal-assets';
 import {supportsJournal3D} from "./journal-capabilities";
 import { pagePosition } from "./journal-math";
+import LivingSpread from "./journal-popups";
+import {sheetPhase} from "./journal-timeline";
 
 let graphicsSupport: Promise<boolean>|undefined;
 const checkGraphics = () => graphicsSupport ??= Promise.resolve().then(()=>supportsJournal3D(document.createElement('canvas')));
@@ -21,12 +26,16 @@ const WIDTH = 3.15;
 const HEIGHT = 4.4;
 const PAGE_Y = .195;
 const ASSETS = "/images/about/journal/";
-const PAGE_FILES = ["person", "journey", "outside", "after-dark", "matchday", "curiosity"];
 type Props = {
+  preparingSpread:number;
+  living: boolean;
+  replay: number;
   spread: number;
   turn: JournalTurn | null;
   onComplete: (spread: number) => void;
   onReady: () => void;
+  onPagesReady: (loaded:number[]) => void;
+  onPagesFailed: (spread:number) => void;
   onFailure: (reason?: "webgl-unavailable" | "context-lost") => void;
   onMemory: (index: number) => void;
   onNavigate: (direction: JournalDirection) => void;
@@ -35,24 +44,57 @@ type Props = {
   onDragEnd: (cancelled?: boolean) => void;
 };
 
-function CameraRig({ open }: { open: boolean }) {
+function CameraRig({ open,living,active }: { open: boolean;living:boolean;active:boolean }) {
   const { camera, size, pointer, invalidate } = useThree();
-  const last = useRef([0, 0]);
-  useEffect(() => {
-    const ortho = camera as THREE.OrthographicCamera;
-    ortho.zoom = Math.min(size.width / (size.width < 900 ? (open ? 7.2 : 4.8) : 8.3), size.height / 5.7);
-    ortho.updateProjectionMatrix();
+  const last = useRef([0,0,0,0,0]),look=useRef(.2),initialized=useRef(false);
+  const framed=useRef(28);
+  useLayoutEffect(() => {
+    const perspective=camera as THREE.PerspectiveCamera;
+    const y=open&&living?7.7:11,z=open&&living?9.6:5.9,target=open&&living?1:.2;
+    const distance=Math.hypot(y-target,z);
+    const vertical=(open&&living?4.9:5.7)*size.height/Math.max(220,size.height-(open&&living?100:0));
+    const horizontal=size.width<900?(open?7.3:4.8):8.6;
+    framed.current=THREE.MathUtils.radToDeg(2*Math.atan(Math.max(vertical,horizontal/(size.width/size.height))/(2*distance)));
+    // Correct projection precedes the first visible frame, avoiding a late
+    // replacement cover. Later changes travel with the physical opening.
+    if(!initialized.current){
+      perspective.fov=framed.current;perspective.position.set(0,y,z);
+      look.current=target;perspective.lookAt(0,target,0);
+      perspective.updateProjectionMatrix();initialized.current=true;
+    }
     invalidate();
-  }, [camera, size.width, size.height, open, invalidate]);
+  }, [camera, size.width, size.height, open, living, invalidate]);
   useFrame((_, delta) => {
-    const x = pointer.x * (open ? .07 : .22);
-    const z = 5.9 + pointer.y * .08;
-    camera.position.x = THREE.MathUtils.damp(camera.position.x, x, 7, Math.min(delta, .1));
-    camera.position.z = THREE.MathUtils.damp(camera.position.z, z, 7, Math.min(delta, .1));
-    camera.lookAt(0, .2, 0);
-    if (Math.abs(last.current[0] - camera.position.x) + Math.abs(last.current[1] - camera.position.z) > .0001) invalidate();
-    last.current = [camera.position.x, camera.position.z];
+    if (!active) return;
+    const perspective=camera as THREE.PerspectiveCamera,dt=Math.min(delta,.1);
+    const x = pointer.x * (open ? (living ? .18 : .07) : .22);
+    const z = (open&&living?9.6:5.9) + pointer.y * .08;
+    const y = open&&living?7.7:11;
+    camera.position.x = THREE.MathUtils.damp(camera.position.x,x,7,dt);
+    camera.position.y = THREE.MathUtils.damp(camera.position.y,y,7,dt);
+    camera.position.z = THREE.MathUtils.damp(camera.position.z,z,7,dt);
+    look.current=THREE.MathUtils.damp(look.current,open&&living?1:.2,7,dt);
+    perspective.fov=THREE.MathUtils.damp(perspective.fov,framed.current,7,dt);
+    perspective.updateProjectionMatrix();camera.lookAt(0,look.current,0);
+    const current=[camera.position.x,camera.position.z,camera.position.y,perspective.fov,look.current];
+    if(current.some((value,index)=>Math.abs(value-last.current[index])>.0001))invalidate();
+    last.current=current;
   });
+  return null;
+}
+
+/** A prefiltered studio reflection environment, generated once on the GPU.
+ * No remote HDR or extra render pass is needed during page animation. */
+function StudioLight(){
+  const {gl,scene,invalidate}=useThree();
+  useEffect(()=>{
+    const room=new RoomEnvironment(),generator=new THREE.PMREMGenerator(gl);
+    const environment=generator.fromScene(room,.04,.1,100,{size:128});
+    const previous=scene.environment,previousIntensity=scene.environmentIntensity;
+    scene.environment=environment.texture;scene.environmentIntensity=.55;
+    room.dispose();generator.dispose();invalidate();
+    return ()=>{scene.environment=previous;scene.environmentIntensity=previousIntensity;environment.dispose();};
+  },[gl,scene,invalidate]);
   return null;
 }
 
@@ -120,29 +162,70 @@ function PageBlock({ side }: { side: 'left' | 'right' }) {
   </group>;
 }
 
-function Book(props: Props) {
+/** Speculative neighbour loading is isolated from the visible renderer. An
+ * unavailable image must not dismantle an otherwise healthy current spread. */
+class PreparationBoundary extends Component<{spread:number;onFailure:(spread:number)=>void;children:ReactNode},{failed:boolean}> {
+  state={failed:false};
+  static getDerivedStateFromError(){return {failed:true};}
+  componentDidCatch(){this.props.onFailure(this.props.spread);}
+  render(){return this.state.failed?null:this.props.children;}
+}
+
+function PrepareTexture({url}:{url:string}) {
+  useTexture(url);
+  return null;
+}
+function SpreadReady({spread,onReady}:{spread:number;onReady:(loaded:number[])=>void}) {
+  useEffect(()=>onReady([spread]),[spread,onReady]);return null;
+}
+function PreparePaper({spread,onReady}:{spread:number;onReady:(loaded:number[])=>void}) {
+  return <>{spreadAssets(spread).map(url=><PrepareTexture key={url} url={url}/>)}<SpreadReady spread={spread} onReady={onReady}/></>;
+}
+
+function BookPaper({spread,turn,motion,living}:{spread:number;turn:JournalTurn|null;motion:React.RefObject<{value:number}>;living:boolean}) {
+  const {gl,invalidate}=useThree();
+  const left=useRef<THREE.Group>(null);
+  const isCover=!!turn&&(turn.from===0||turn.to===0);
+  const from=Math.max(1,turn?.from??spread),to=Math.max(1,turn?.to??spread);
+  const forward=(turn?.to??spread)>(turn?.from??spread);
+  const cover=turn?.from===0?to:from;
+  const leftIndex=isCover?cover:turn&&!forward?to:from;
+  const rightIndex=isCover?cover:turn&&forward?to:from;
+  const leftFront=useTexture(paperUrls(leftIndex,living)[0]),leftBack=useTexture(paperUrls(leftIndex,living)[1]);
+  const rightFront=useTexture(paperUrls(rightIndex,living)[0]),rightBack=useTexture(paperUrls(rightIndex,living)[1]);
+  const pages=useMemo(()=>[leftFront,leftBack,rightFront,rightBack],[leftFront,leftBack,rightFront,rightBack]);
+  useEffect(()=>{
+    pages.forEach(map=>{map.colorSpace=THREE.SRGBColorSpace;map.anisotropy=Math.min(8,gl.capabilities.getMaxAnisotropy());map.needsUpdate=true;});
+    invalidate();
+  },[pages,gl,invalidate]);
+  useFrame(()=>{if(left.current)left.current.visible=(isCover?motion.current.value:spread>0?1:0)>.55;});
+  return <>
+    <PrintedPage side="right" map={rightBack}/>
+    <group ref={left} visible={false}><PageBlock side="left"/><PrintedPage side="left" map={leftFront}/></group>
+    {turn&&!isCover&&<TurningPage phase={motion} front={leftBack} back={rightFront}/>}
+  </>;
+}
+
+function Book(props: Props & {active:boolean}) {
   const { spread, turn, onComplete, onReady, onDragStart, onDragMove, onDragEnd, onNavigate } = props;
-  const textures = useTexture(["cover", ...PAGE_FILES, "cloth"].map(name => ASSETS + name + (name === 'cloth' ? '.png' : '.webp')));
+  const textures = useTexture([ASSETS+'cover.webp',ASSETS+'cloth.png']);
   const { invalidate, gl } = useThree();
   const root = useRef<THREE.Group>(null);
   const cover = useRef<THREE.Group>(null);
-  const leftStack = useRef<THREE.Group>(null);
   const motion = useRef({ value: 0 });
+  const paperMotion = useRef({ value: 0 });
+  const turnTween = useRef<gsap.core.Tween|null>(null);
+  const rendering = useRef(props.active);
   const activeDrag = useRef(false);
+  const activePointer = useRef<number|null>(null);
   const dragMoved = useRef(false);
   const dragOrigin = useRef(0);
   const prepared = useRef(false);
   const announced = useRef(false);
   const readyFrame = useRef<number|null>(null);
   const isCover = !!turn && (turn.from === 0 || turn.to === 0);
-  const fromSpread = Math.max(1, turn?.from ?? spread);
-  const toSpread = Math.max(1, turn?.to ?? spread);
   const forward = (turn?.to ?? spread) > (turn?.from ?? spread);
-  const coverSpread = turn?.from === 0 ? toSpread : fromSpread;
-  const leftIndex = isCover ? coverSpread : turn && !forward ? toSpread : fromSpread;
-  const rightIndex = isCover ? coverSpread : turn && forward ? toSpread : fromSpread;
   const coverMap = textures[0];
-  const pages = textures.slice(1,-1);
   const cloth = textures[textures.length-1];
   useEffect(() => {
     textures.forEach(texture => { texture.colorSpace = THREE.SRGBColorSpace; texture.anisotropy = Math.min(8, gl.capabilities.getMaxAnisotropy()); texture.needsUpdate = true; });
@@ -163,19 +246,27 @@ function Book(props: Props) {
       invalidate();
       return;
     }
-    if (turn.progress === undefined) motion.current.value = forward ? 0 : 1;
+    motion.current.value = turn.progress ?? (forward ? 0 : 1);
     const destination = turn.cancelled ? (forward ? 0 : 1) : (forward ? 1 : 0);
     const tween = gsap.to(motion.current, {
       value: destination,
-      duration: isCover ? 1.45 : Math.max(.3, .95 * Math.abs(destination - motion.current.value)),
-      ease: isCover ? 'power2.inOut' : 'power2.out',
-      onUpdate: invalidate,
+      duration: Math.max(.26, (isCover ? 1.75 : 1.4) * Math.abs(destination - motion.current.value)),
+      ease: 'power2.inOut',
+      onUpdate: () => {if(rendering.current)invalidate();},
       onComplete: () => onComplete(turn.cancelled ? turn.from : turn.to),
     });
-    return () => { tween.kill(); };
+    turnTween.current=tween;
+    if(!rendering.current)tween.pause();
+    return () => { tween.kill();turnTween.current=null; };
   }, [turn, forward, isCover, invalidate, onComplete]);
+  useEffect(()=>{
+    rendering.current=props.active;
+    if(props.active){turnTween.current?.resume();invalidate();}
+    else turnTween.current?.pause();
+  },[props.active,invalidate]);
   useFrame(() => {
-    const opened = isCover ? motion.current.value : (spread > 0 ? 1 : 0);
+    paperMotion.current.value=turn?sheetPhase(motion.current.value,turn.from,turn.to):spread>0?1:0;
+    const opened = isCover ? paperMotion.current.value : (spread > 0 ? 1 : 0);
     if (cover.current) {
       cover.current.rotation.z = opened * Math.PI;
       cover.current.position.y = .224 - opened * .14;
@@ -184,7 +275,6 @@ function Book(props: Props) {
       root.current.position.x = -WIDTH / 2 * (1 - opened);
       root.current.rotation.y = -.08 * (1 - opened);
     }
-    if (leftStack.current) leftStack.current.visible = opened > .92;
     // Reveal only after this frame has drawn the textured, correctly posed
     // book. Texture loading alone does not mean the first frame is ready.
     if (prepared.current && !announced.current) {
@@ -199,40 +289,39 @@ function Book(props: Props) {
       event.stopPropagation();
       dragOrigin.current = event.nativeEvent.clientX;
       dragMoved.current = false;
-      activeDrag.current = true;
+      activeDrag.current = true;activePointer.current=event.pointerId;
       (event.target as unknown as {setPointerCapture: (id: number) => void}).setPointerCapture(event.pointerId);
       onDragStart(event.nativeEvent.clientX, direction);
     },
     onPointerMove: (event: ThreeEvent<PointerEvent>) => {
       invalidate();
-      if (!activeDrag.current) return;
+      if (!activeDrag.current || activePointer.current!==event.pointerId) return;
       event.stopPropagation();
       if (Math.abs(event.nativeEvent.clientX - dragOrigin.current) > 6) dragMoved.current = true;
       onDragMove(event.nativeEvent.clientX);
     },
     onPointerUp: (event: ThreeEvent<PointerEvent>) => {
-      if (!activeDrag.current) return;
+      if (!activeDrag.current || activePointer.current!==event.pointerId) return;
       event.stopPropagation();
-      activeDrag.current = false;
+      activeDrag.current = false;activePointer.current=null;
       onDragEnd();
-      (event.target as unknown as {releasePointerCapture: (id: number) => void}).releasePointerCapture(event.pointerId);
+      const target=event.target as unknown as {hasPointerCapture:(id:number)=>boolean;releasePointerCapture:(id:number)=>void};
+      if(target.hasPointerCapture(event.pointerId))target.releasePointerCapture(event.pointerId);
       if (!dragMoved.current) {
         if (memory !== undefined) props.onMemory(memory);
         else onNavigate(direction);
       }
     },
-    onPointerCancel: () => { activeDrag.current = false; onDragEnd(true); },
-    onLostPointerCapture: () => {if (activeDrag.current) {activeDrag.current=false;onDragEnd(true);}},
+    onPointerCancel: (event:ThreeEvent<PointerEvent>) => {if(activePointer.current!==event.pointerId)return;activeDrag.current=false;activePointer.current=null;onDragEnd(true);},
+    onLostPointerCapture: (event:ThreeEvent<PointerEvent>) => {if(activeDrag.current&&activePointer.current===event.pointerId){activeDrag.current=false;activePointer.current=null;onDragEnd(true);}},
     onPointerOver: () => { if (!turn) gl.domElement.style.cursor = memory !== undefined ? 'zoom-in' : spread === 0 ? 'pointer' : spread === content.spreads.length && direction === 'next' ? 'default' : 'grab'; },
     onPointerOut: () => { if (!activeDrag.current) gl.domElement.style.cursor = ''; },
   });
   return <group ref={root} position={[spread > 0 ? 0 : -WIDTH / 2, 0, 0]} rotation={[0, spread > 0 ? 0 : -.08, 0]}>
     <PageBlock side="right" />
-    <PrintedPage side="right" map={pages[(rightIndex - 1) * 2 + 1]} />
-    <group ref={leftStack} visible={false}>
-      <PageBlock side="left" />
-      <PrintedPage side="left" map={pages[(leftIndex - 1) * 2]} />
-    </group>
+    <PreparationBoundary key={`requested-${props.preparingSpread}`} spread={props.preparingSpread} onFailure={props.onPagesFailed}><Suspense fallback={null}><PreparePaper spread={props.preparingSpread} onReady={props.onPagesReady}/></Suspense></PreparationBoundary>
+    {spread>0&&[spread-1,spread+1].filter(index=>index>0&&index<=content.spreads.length&&index!==props.preparingSpread).map(index=><PreparationBoundary key={`prepare-${index}`} spread={index} onFailure={props.onPagesFailed}><Suspense fallback={null}><PreparePaper spread={index} onReady={props.onPagesReady}/></Suspense></PreparationBoundary>)}
+    <Suspense fallback={null}><BookPaper spread={spread} turn={turn} motion={paperMotion} living={props.living}/></Suspense>
     <group ref={cover} position={[0, .224, 0]}>
       <RoundedBox args={[WIDTH + .13, .075, HEIGHT + .17]} radius={.025} smoothness={4} position={[WIDTH / 2, 0, 0]} castShadow receiveShadow>
         <meshStandardMaterial color="#233a31" bumpMap={cloth} bumpScale={.015} roughness={.7} />
@@ -255,16 +344,11 @@ function Book(props: Props) {
       <planeGeometry args={[.16, .55]} />
       <meshStandardMaterial color="#9c344a" roughness={.9} side={THREE.DoubleSide} />
     </mesh>
-    {turn && !isCover && <TurningPage
-      phase={motion}
-      front={pages[(forward ? fromSpread : toSpread) * 2 - 1]}
-      back={pages[(forward ? toSpread : fromSpread) * 2 - 2]}
-    />}
     <mesh position={[WIDTH / 2, .31, 0]} rotation={[-Math.PI / 2, 0, 0]} {...grab('next')}>
       <planeGeometry args={[WIDTH, HEIGHT]} />
       <meshBasicMaterial transparent opacity={0} depthWrite={false} />
     </mesh>
-    {!turn && spread > 0 && (spread===1
+    {!props.living && !turn && spread > 0 && (spread===1
       ? [{side:'right',x:95,y:820,w:815,h:360,memory:0}]
       : spread===2 ? [
         {side:'left',x:82,y:388,w:856,h:430,memory:1},
@@ -281,6 +365,7 @@ function Book(props: Props) {
       <planeGeometry args={[WIDTH, HEIGHT]} />
       <meshBasicMaterial transparent opacity={0} depthWrite={false} />
     </mesh>}
+    {props.living && [...new Set(turn?[turn.from,turn.to]:[spread])].filter(index=>index>0).map(index=><Suspense key={index} fallback={null}><LivingSpread spread={index} replay={props.replay} turn={turn} phase={motion} active={props.active} onMemory={props.onMemory}/></Suspense>)}
   </group>;
 }
 
@@ -290,7 +375,7 @@ function Desk() {
   const maps = useMemo(() => [wood, normal].map((source, index) => {
     const copy = source.clone();
     copy.wrapS = copy.wrapT = THREE.RepeatWrapping;
-    copy.repeat.set(1.6, 1.6);
+    copy.repeat.set(6.4, 6.4);
     copy.colorSpace = index === 0 ? THREE.SRGBColorSpace : THREE.NoColorSpace;
     copy.anisotropy = 4;
     return copy;
@@ -299,13 +384,13 @@ function Desk() {
   const cup = useMemo(() => [new THREE.Vector2(.31, 0),new THREE.Vector2(.37,.04),new THREE.Vector2(.43,.53),new THREE.Vector2(.43,.58),new THREE.Vector2(.39,.58),new THREE.Vector2(.33,.12),new THREE.Vector2(.29,.09)], []);
   return <group>
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0,-.075,0]} receiveShadow onPointerMove={() => invalidate()}>
-      <planeGeometry args={[40, 40]} />
+      <planeGeometry args={[160, 160]} />
       <meshStandardMaterial map={maps[0]} normalMap={maps[1]} normalScale={new THREE.Vector2(.12,.12)} color="#584539" roughness={.82} />
     </mesh>
     <group position={[4.05,-.02,-1.65]} rotation={[0,.3,0]}>
       <mesh receiveShadow castShadow position={[0,.035,0]}><cylinderGeometry args={[.7,.65,.055,48]}/><meshStandardMaterial color="#d8d3c6" roughness={.24}/></mesh>
       <mesh castShadow receiveShadow><latheGeometry args={[cup,48]}/><meshStandardMaterial color="#ece5d4" roughness={.24}/></mesh>
-      <mesh position={[0,.51,0]} rotation={[-Math.PI/2,0,0]}><circleGeometry args={[.385,48]}/><meshStandardMaterial color="#160c08" roughness={.16}/></mesh>
+      <mesh position={[0,.51,0]} rotation={[-Math.PI/2,0,0]}><circleGeometry args={[.385,48]}/><meshPhysicalMaterial color="#160c08" roughness={.38} envMapIntensity={.02} specularIntensity={.05}/></mesh>
       <mesh position={[.445,.31,0]} scale={[.7,1,1]} castShadow><torusGeometry args={[.23,.055,12,32]}/><meshStandardMaterial color="#e5ddcc" roughness={.25}/></mesh>
     </group>
     <group position={[4.2,.015,1.4]} rotation={[0,-.26,0]}>
@@ -319,7 +404,17 @@ function Desk() {
 
 function World(props: Props) {
   const {onFailure}=props;
-  const { gl } = useThree();
+  const { gl,invalidate,setFrameloop } = useThree();
+  const [active,setActive]=useState(true);
+  useEffect(()=>{
+    let intersecting=true;
+    const update=()=>setActive(intersecting&&!document.hidden);
+    const observer=new IntersectionObserver(entries=>{intersecting=entries[0]?.isIntersecting??true;update();},{threshold:.01});
+    observer.observe(gl.domElement);
+    document.addEventListener('visibilitychange',update);update();
+    return ()=>{observer.disconnect();document.removeEventListener('visibilitychange',update);};
+  },[gl]);
+  useEffect(()=>{setFrameloop(active?'demand':'never');if(active)invalidate();},[active,invalidate,setFrameloop]);
   useEffect(() => {
     const canvas = gl.domElement;
     const fail=()=>onFailure('context-lost');
@@ -328,11 +423,13 @@ function World(props: Props) {
   }, [gl, onFailure]);
   return <>
     <color attach="background" args={['#261e18']} />
-    <ambientLight intensity={.85} color="#e9e1d2" />
-    <directionalLight position={[-3,8,-4]} intensity={3.1} color="#ffefd6" castShadow shadow-mapSize={[2048,2048]} shadow-camera-left={-7} shadow-camera-right={7} shadow-camera-top={7} shadow-camera-bottom={-7} shadow-bias={-.0005} shadow-normalBias={.015} shadow-radius={3} />
-    <directionalLight position={[5,5,5]} intensity={.65} color="#d9e4ef" />
-    <CameraRig open={props.spread > 0 || !!props.turn} />
-    <Suspense fallback={null}><Desk/><Book {...props}/></Suspense>
+    <StudioLight/>
+    <ambientLight intensity={.22} color="#e9e1d2" />
+    <hemisphereLight intensity={.3} color="#e7edf2" groundColor="#655444"/>
+    <directionalLight position={[-3,8,-4]} intensity={2.2} color="#fff3e2" castShadow shadow-mapSize={[2048,2048]} shadow-camera-left={-5} shadow-camera-right={5} shadow-camera-top={5} shadow-camera-bottom={-5} shadow-bias={-.00015} shadow-normalBias={.004} shadow-radius={3} />
+    <directionalLight position={[5,5,5]} intensity={.8} color="#d9e4ef" />
+    <CameraRig open={props.spread > 0 || !!props.turn} living={props.living} active={active}/>
+    <Suspense fallback={null}><Desk/><Book {...props} active={active}/></Suspense>
   </>;
 }
 
@@ -349,7 +446,7 @@ export default function JournalScene(props: Props) {
     return ()=>{active=false;};
   },[onFailure]);
   if(!graphicsReady)return null;
-  return <Canvas orthographic shadows={{type:THREE.PCFShadowMap}} frameloop="demand" dpr={[1,1.6]} camera={{position:[0,11,5.9],zoom:100,near:.1,far:70}}
+  return <Canvas shadows={{type:THREE.PCFShadowMap}} frameloop="demand" dpr={[1,1.6]} camera={{position:[0,11,5.9],fov:28,near:.1,far:140}}
     gl={{antialias:true,alpha:false,powerPreference:'default'}}
     onCreated={({gl,invalidate}) => {
       gl.toneMapping = THREE.ACESFilmicToneMapping;

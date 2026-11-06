@@ -25,10 +25,18 @@ export function AIChatbot() {
   const [position, setPosition] = useState<{ x: number; y: number } | null>(null);
   const drag = useRef<{ id: number; x: number; y: number; left: number; top: number; moved: boolean } | null>(null);
   const suppressClick = useRef(false);
-  const clampPosition = (x: number, y: number) => ({
-    x: Math.max(8, Math.min(x, window.innerWidth - (launcherRef.current?.offsetWidth ?? 220) - 8)),
-    y: Math.max(8, Math.min(y, window.innerHeight - (launcherRef.current?.offsetHeight ?? 100) - 8)),
-  });
+  const clampPosition = (x: number, y: number) => {
+    const width = launcherRef.current?.offsetWidth ?? 120;
+    const height = launcherRef.current?.offsetHeight ?? 120;
+    const maxY = Math.max(8, window.innerHeight - height - 8);
+    // Keep the launcher below the fixed navigation so dragging cannot bury its hit target.
+    const headerBottom = document.querySelector(".site-header")?.getBoundingClientRect().bottom ?? 0;
+    const minY = Math.min(maxY, Math.max(8, headerBottom + 8));
+    return {
+      x: Math.max(8, Math.min(x, window.innerWidth - width - 8)),
+      y: Math.max(minY, Math.min(y, maxY)),
+    };
+  };
   useEffect(() => {
     const resize = () => setPosition(previous => previous ? clampPosition(previous.x, previous.y) : null);
     window.addEventListener("resize", resize);

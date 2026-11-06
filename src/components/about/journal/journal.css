@@ -35,6 +35,12 @@
 .j-cover-fallback img {display:block;width:100%;height:auto}
 .j-scene-note {position:absolute;bottom:25px;left:50%;transform:translateX(-50%);font:8px var(--font-jetbrains-mono),monospace;color:#e1d6c0aa;letter-spacing:.2em;white-space:nowrap;pointer-events:none}
 .j-desk-mark {position:absolute;right:32px;bottom:25px;color:#eee8d95c;font:8px/1.7 var(--font-jetbrains-mono),monospace;letter-spacing:.15em;pointer-events:none;text-align:right}
+.j-spread-caption {position:absolute;top:28px;left:clamp(24px,4vw,64px);right:24px;z-index:1;max-width:560px;pointer-events:none;opacity:1;transition:opacity 220ms cubic-bezier(.22,1,.36,1);text-shadow:0 2px 18px #17120fb3}
+.j-spread-caption .j-print-label {color:var(--j-gold);font-size:9px;letter-spacing:.15em;text-transform:uppercase}
+.j-spread-caption h2 {font:400 clamp(26px,2.4vw,36px)/1.08 var(--font-serif),Georgia,serif;letter-spacing:-.035em;margin:10px 0 8px;text-wrap:balance}
+.j-spread-caption p {font-size:12px;line-height:1.65;margin:0;max-width:58ch;color:#d2c7b7;text-wrap:pretty}
+.personal-journal[data-turning=true] .j-spread-caption {opacity:0}
+.personal-journal[data-open=true][data-scene=true] .j-world {top:0;bottom:0}
 .j-toolbar {position:relative;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:18px;min-height:80px;border-top:1px solid #ffffff1a;border-bottom:1px solid #ffffff14;background:#211c18;padding:12px clamp(16px,4vw,64px);z-index:3}
 .j-chapters,.j-pagination,.j-options {display:flex;align-items:center;gap:10px}
 .j-options {justify-content:flex-end}
@@ -47,6 +53,19 @@
 .j-control:focus-visible,.j-chapter:focus-visible,.j-reader-toggle:focus-visible {outline:2px solid var(--j-gold);outline-offset:3px;box-shadow:none}
 .j-page-status {font:10px var(--font-jetbrains-mono),monospace;color:#d5c9b4;min-width:108px;text-align:center;white-space:nowrap}
 .j-reader-toggle.j-reader-toggle {height:44px;gap:8px;border-radius:3px;color:#cfc2ad;font-size:11px;background:transparent;padding:8px 12px}
+.j-reader-toggle[aria-pressed=true] {color:#ead8aa;background:#d1b98610}
+.j-toolbar {grid-template-columns:1fr 1fr}
+.j-chapters {grid-column:1/-1;justify-content:center;flex-wrap:wrap;gap:5px}
+.j-pagination {justify-content:flex-end}
+.j-options {justify-content:flex-start;flex-wrap:wrap}
+.j-interest-art {display:block;width:100%;height:auto;object-fit:contain;margin:20px 0}
+.j-media-credit {font-size:10px;line-height:1.7;padding:12px 24px;color:#c0b49f;border-top:1px solid #d1b98620;text-align:center}
+.j-media-credit a {text-decoration:underline;text-underline-offset:3px}
+.j-paper .j-interest-topics {font:10px/1.8 var(--font-jetbrains-mono),monospace;letter-spacing:.04em;color:#6a705d;margin:8px 0 18px}
+@media(min-width:900px) {
+ .j-pagination {padding-right:15px}
+ .j-options {padding-left:15px}
+}
 .j-underbar {padding:16px clamp(22px,4vw,64px);display:flex;align-items:center;justify-content:space-between;gap:20px;background:#211c18}
 .j-underbar p {font:10px/1.6 var(--font-inter),sans-serif;color:#a89f91;margin:0}
 .j-underbar a {font-size:11px;display:flex;align-items:center;gap:12px;color:#e0c89d;white-space:nowrap}
@@ -159,13 +178,15 @@
   .j-invitation .j-open-button {margin:auto}
   .j-invitation .j-loading-note {margin:12px auto 0}
   .j-desk-mark {display:none}
-  .j-toolbar {grid-template-columns:1fr auto;gap:10px;padding:13px 16px}
+  .j-toolbar {grid-template-columns:minmax(0,1fr);gap:10px;padding:13px 16px}
   .personal-journal[data-open=true] .j-toolbar {position:sticky;bottom:0;box-shadow:0 -8px 25px #0003}
-  .j-chapters {grid-column:1/-1;justify-content:center;flex-wrap:wrap;gap:3px}
-  .j-pagination {justify-content:flex-start;gap:4px}
+  .j-chapters {grid-column:1/-1;justify-content:flex-start;flex-wrap:nowrap;gap:3px;max-width:100%;overflow-x:auto;scrollbar-width:thin;overscroll-behavior-x:contain}
+  .j-pagination {grid-column:1/-1;justify-content:center;gap:4px}
   .j-page-status {min-width:86px}
-  .j-options {position:static;justify-content:flex-end;gap:4px}
+  .j-options {grid-column:1/-1;position:static;justify-content:center;gap:4px}
   .j-options .j-reader-toggle {display:flex;padding-inline:7px;font-size:10px;gap:5px}
+  .j-options .j-reader-toggle[aria-pressed] {min-width:44px;padding-inline:8px}
+  .j-options .j-reader-toggle[aria-pressed] span {display:none}
   .personal-journal[data-scene=true][data-open=false] .j-world {bottom:300px}
   .personal-journal[data-scene=true][data-open=false] .j-scene-loading {bottom:300px}
   .personal-journal[data-scene=true][data-open=false] .j-invitation {position:absolute;left:18px;right:18px;bottom:30px;width:auto}
@@ -219,4 +240,15 @@
 @media(prefers-reduced-motion:reduce) {
  .personal-journal *, .personal-journal *::before,.personal-journal *::after {animation:none!important;transition:none!important;scroll-behavior:auto!important}
  .j-cover-fallback {transform:none}
+}
+
+/* Keep the physical spread large while leaving its story clear above it. */
+@media(max-width:700px) {
+ .j-spread-caption {top:18px;left:22px;right:22px;max-width:none}
+ .j-spread-caption h2 {font-size:28px;margin:8px 0}
+ .j-spread-caption p {font-size:12px;line-height:1.6;max-width:46ch}
+ .personal-journal[data-open=true][data-scene=true] .j-world {top:0;bottom:0}
+ .personal-journal[data-open=true][data-scene=true] .j-stage {min-height:565px;max-height:740px;height:calc(100svh - 220px)}
+ .j-scene-note {max-width:calc(100% - 32px);white-space:normal;text-align:center;line-height:1.6}
+ .j-topline {padding-inline:22px}
 }

@@ -20,10 +20,23 @@ function LiveSplineCharacter({ state, size = 56 }: CharacterProps) {
   useEffect(() => {
     if (!canvasRef.current) return;
     let cancelled = false, expired = false;
+    const canvas = canvasRef.current;
     let app: Application | null = null;
     let observer: MutationObserver | undefined;
     let settle: ReturnType<typeof setInterval> | undefined;
     const timeout = setTimeout(() => { expired = true; app?.dispose(); appRef.current = null; }, 12000);
+    const loseContext = () => {
+      if (expired || cancelled) return;
+      // A GPU reset must restore the visible SVG, not leave an empty launcher.
+      expired = true;
+      clearTimeout(timeout);
+      clearInterval(settle);
+      observer?.disconnect();
+      appRef.current = null;
+      try { app?.dispose(); } catch { /* Context is already unavailable. */ }
+      if (!cancelled) setLoaded(false);
+    };
+    canvas.addEventListener("webglcontextlost", loseContext);
     const visibility = () => {
       if (!appRef.current) return;
       if (document.hidden) appRef.current.stop(); else appRef.current.play();
@@ -44,7 +57,7 @@ function LiveSplineCharacter({ state, size = 56 }: CharacterProps) {
         };
         const configure = () => {
           if (!app) return;
-          app.setSize(size, size);
+          app.setSize(Math.round(size * 1.38), Math.round(size * 1.38));
           frame();
           for (const name of ["PKB", "Ellipse", "Cylinder", "Torus", "Boolean 2"]) {
             const object = app.findObjectByName(name);
@@ -70,6 +83,7 @@ function LiveSplineCharacter({ state, size = 56 }: CharacterProps) {
       clearInterval(settle);
       observer?.disconnect();
       document.removeEventListener("visibilitychange", visibility);
+      canvas.removeEventListener("webglcontextlost", loseContext);
       appRef.current = null;
       app?.dispose();
     };
@@ -86,8 +100,8 @@ function LiveSplineCharacter({ state, size = 56 }: CharacterProps) {
     return () => clearInterval(interval);
   }, [state, loaded]);
 
-  return <div style={{ width: "100%", height: "100%", position: "relative", flexShrink: 0 }} aria-hidden="true">
+  return <div style={{ width: "100%", height: "100%", position: "relative", flexShrink: 0, overflow: "hidden" }} aria-hidden="true">
     {(!loaded) && <div className="pika-character-fallback"><PikachuAvatar size="100%" active={state === "talking"}/></div>}
-    <canvas ref={canvasRef} width={512} height={512} style={{ width: "100%", height: "100%", position: "absolute", inset: 0, opacity: loaded ? 1 : 0, pointerEvents: "none", transition: "opacity 200ms ease" }}/>
+    <canvas ref={canvasRef} width={512} height={512} style={{ width: "100%", height: "100%", position: "absolute", inset: 0, opacity: loaded ? 1 : 0, pointerEvents: "none", transform: "translate(13%, 9%) scale(1.38)", transformOrigin: "50% 0%", transition: "opacity 200ms ease" }}/>
   </div>;
 }

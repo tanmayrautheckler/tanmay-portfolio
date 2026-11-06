@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
-import content from "./content.json";
+import content,{journalPages} from "./journal-content";
 
 export const memories = [
   {image:content.spreads[0].right.image!,alt:content.spreads[0].right.alt!,label:'Somewhere along the way',note:'Road trips'},
@@ -19,8 +19,8 @@ export default function ReaderPage({index,onMemory}: {index:number;onMemory:(ind
   const roots=content.spreads[0].right;
   const day=content.spreads[1].left;
   const night=content.spreads[1].right;
-  const football=content.spreads[2].left;
-  const curious=content.spreads[2].right;
+  const football=content.spreads.find(spread=>spread.scene==='football')!.left;
+  const current=journalPages[index];
   if(index===0) return <article className="j-paper j-person">
     <span className="j-print-label">{person.kicker}</span><h2>{person.title}</h2><p>{person.body}</p>
     <div className="j-portrait"><div/><Image src={person.image!} width={1024} height={1536} alt={person.alt!}/><span>MUMBAI<br/><i aria-hidden="true">↓</i><br/>PHOENIX</span></div>
@@ -40,15 +40,17 @@ export default function ReaderPage({index,onMemory}: {index:number;onMemory:(ind
       <p className="j-travel-note">{page.body}</p><PageFooter number={page.number}/>
     </article>;
   }
-  if(index===4) return <article className="j-paper j-matchday">
+  if(current?.kind==='football') return <article className="j-paper j-matchday">
     <span className="j-print-label">{football.kicker}</span><h2>{football.title}</h2>
     <div className="j-match-art" aria-label="An illustrated blue and garnet number 10 Messi shirt on a football pitch">
       <div className="j-pitch" aria-hidden="true"><i/><b/><span/></div><div className="j-shirt" aria-hidden="true"><span>MESSI</span><strong>10</strong></div><span className="j-club-label">FC BARCELONA</span>
     </div><p>{football.body}</p><p className="j-margin-note">{football.aside}</p><PageFooter number={football.number}/>
   </article>;
-  return <article className="j-paper j-curious"><span className="j-print-label">{curious.kicker}</span><h2>{curious.title}</h2><p>{curious.body}</p>
-    <div className="j-question" aria-hidden="true"><span/>?</div>
-    <div className="j-research"><span className="j-print-label">A PERSONAL RABBIT HOLE</span><h3>{curious.project!.title}</h3><p>{curious.project!.body}</p><Link href={curious.project!.href} className="j-paper-link">{curious.project!.label}<ArrowUpRight size={17}/></Link></div>
-    <p className="j-margin-note">{curious.note}</p><PageFooter number={curious.number}/>
+  if(!current)return null;
+  return <article className={`j-paper j-interest j-interest-${current.kind}`}><span className="j-print-label">{current.kicker}</span><h2>{current.title}</h2><p>{current.body}</p>
+    <Image className="j-interest-art" src={`/images/about/journal/${current.texture}-art.webp`} width={1000} height={630} alt={`Paper illustration: ${current.topics?.join(', ')??current.title.replaceAll('\n',' ')}`} sizes="(max-width: 600px) 90vw, 570px"/>
+    {current.topics&&<p className="j-interest-topics">{current.topics.join(' · ')}</p>}
+    {current.project&&<Link href={current.project.href} className="j-paper-link">{current.project.label}<ArrowUpRight size={17}/></Link>}
+    <p className="j-margin-note">{current.note}</p><PageFooter number={current.number}/>
   </article>;
 }
