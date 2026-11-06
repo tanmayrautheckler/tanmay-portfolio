@@ -6,6 +6,8 @@ import {RoundedBox} from '@react-three/drei/core/RoundedBox';
 import * as THREE from 'three';
 import Athlete from './journal-athlete';
 import {useJournalSurface} from './journal-materials';
+import {PickleballBall, PickleballPaddle} from './journal-pickleball-equipment';
+import {PICKLEBALL_BALL_RADIUS, samplePickleballRally} from './journal-pickleball-motion';
 
 type Time = {time: React.RefObject<{t: number}>};
 type Point = [number, number, number];
@@ -24,38 +26,54 @@ function Pole({from, to, radius = .015, color = STEEL, metalness = .7}: {from: P
 
 function netGeometry(width: number, height: number, columns: number, rows: number, depth = 0) {
   const points: number[] = [];
-  for (let x = 0; x <= columns; x++) {
-    const px = -width / 2 + x / columns * width;
-    points.push(px, 0, 0, px, height, depth);
-  }
-  for (let y = 0; y <= rows; y++) {
-    const py = y / rows * height;
-    points.push(-width / 2, py, depth * y / rows, width / 2, py, depth * y / rows);
-  }
+  const at = (u: number, v: number) => {
+    const slack = Math.sin(u * Math.PI) * Math.sin(v * Math.PI);
+    return [(u - .5) * width, v * height - slack * .018, depth * v - slack * .035];
+  };
+  for (let x = 0; x <= columns; x++) for (let y = 0; y < rows; y++) points.push(...at(x / columns, y / rows), ...at(x / columns, (y + 1) / rows));
+  for (let y = 0; y <= rows; y++) for (let x = 0; x < columns; x++) points.push(...at(x / columns, y / rows), ...at((x + 1) / columns, y / rows));
   const geometry = new THREE.BufferGeometry(); geometry.setAttribute('position', new THREE.Float32BufferAttribute(points, 3)); return geometry;
 }
 
-function useGroundArtwork(kind: 'court' | 'field') {
+function useGroundArtwork(kind: 'court' | 'field' | 'rubber') {
   const texture = useMemo(() => {
     const canvas = document.createElement('canvas'); canvas.width = 1024; canvas.height = 1024;
     const c = canvas.getContext('2d')!;
     if (kind === 'court') {
-      c.fillStyle = '#547568'; c.fillRect(0, 0, 1024, 1024);
-      c.fillStyle = '#416758'; c.fillRect(90, 70, 844, 884);
-      c.strokeStyle = '#e5e2cb'; c.lineWidth = 5; c.strokeRect(90, 70, 844, 884);
-      c.strokeRect(155, 70, 714, 884);
-      c.beginPath(); c.moveTo(90, 512); c.lineTo(934, 512); c.moveTo(90, 330); c.lineTo(934, 330); c.moveTo(90, 694); c.lineTo(934, 694); c.moveTo(512, 70); c.lineTo(512, 330); c.moveTo(512, 694); c.lineTo(512, 954); c.stroke();
-      c.strokeStyle = '#c8b47e'; c.lineWidth = 3; c.strokeRect(192, 145, 640, 734);
-      c.beginPath(); c.moveTo(192, 391); c.lineTo(832, 391); c.moveTo(192, 633); c.lineTo(832, 633); c.stroke();
-    } else {
-      c.fillStyle = '#778e60'; c.fillRect(0, 0, 1024, 1024);
-      for (let i = 0; i < 8; i++) { c.fillStyle = i % 2 ? '#74895d' : '#7e9467'; c.fillRect(i * 128, 0, 128, 1024); }
-      c.fillStyle = '#bbaa83'; c.fillRect(74, 102, 247, 820);
-      c.strokeStyle = '#e7e2c9'; c.lineWidth = 4; c.strokeRect(58, 78, 908, 871);
+      c.fillStyle = '#617c6f'; c.fillRect(0, 0, 1024, 1024);
+      // The painted 20:44 rectangle fits the existing square recreation apron.
+      const length = 946, width = length * 20 / 44, left = (1024 - width) / 2, top = (1024 - length) / 2;
+      const kitchen = length * 7 / 44;
+      c.fillStyle = '#426658'; c.fillRect(left, top, width, length);
+      c.fillStyle = '#4b6d5d'; c.fillRect(left, 512 - kitchen, width, kitchen * 2);
+      c.strokeStyle = '#e1e0cd'; c.lineWidth = length * (2 / 12) / 44;
+      c.strokeRect(left, top, width, length);
+      c.beginPath();
+      c.moveTo(left, 512 - kitchen); c.lineTo(left + width, 512 - kitchen);
+      c.moveTo(left, 512 + kitchen); c.lineTo(left + width, 512 + kitchen);
+      c.moveTo(512, top); c.lineTo(512, 512 - kitchen);
+      c.moveTo(512, 512 + kitchen); c.lineTo(512, top + length); c.stroke();
+    } else if (kind === 'field') {
+      c.fillStyle = '#6e855e'; c.fillRect(0, 0, 1024, 1024);
+      for (let i = 0; i < 8; i++) { c.fillStyle = i % 2 ? '#6a8059' : '#728861'; c.fillRect(i * 128, 0, 128, 1024); }
+      c.fillStyle = '#b4a581'; c.fillRect(74, 102, 247, 820);
+      c.strokeStyle = '#e2dfc9'; c.lineWidth = 4; c.strokeRect(58, 78, 908, 871);
       c.strokeRect(522, 78, 376, 211); c.strokeRect(601, 78, 218, 97);
       c.beginPath(); c.arc(710, 530, 168, 0, Math.PI * 2); c.stroke();
       c.beginPath(); c.moveTo(448, 530); c.lineTo(966, 530); c.stroke();
       c.strokeRect(66, 198, 262, 6); c.strokeRect(66, 820, 262, 6);
+    } else {
+      c.fillStyle = '#323b34'; c.fillRect(0, 0, 1024, 1024);
+    }
+    // Fine aggregate, grass and rubber grain stay quieter than the court lines.
+    for (let i = 0; i < 18000; i++) {
+      const x = (Math.sin(i * 27.3) * .5 + .5) * 1024, y = (Math.sin(i * 63.1 + 5) * .5 + .5) * 1024;
+      if (kind === 'field') {
+        c.strokeStyle = i % 2 ? 'rgba(31,53,31,.13)' : 'rgba(178,188,136,.14)'; c.lineWidth = .8;
+        c.beginPath(); c.moveTo(x, y); c.lineTo(x + Math.sin(i) * 1.5, y - 2.7 - i % 3); c.stroke();
+      } else {
+        c.fillStyle = i % 2 ? 'rgba(16,32,22,.065)' : 'rgba(229,230,205,.075)'; c.fillRect(x, y, kind === 'rubber' ? 1.7 : 1.2, 1.1);
+      }
     }
     // Fine, deterministic surface wear; photographic normal/roughness maps add relief.
     for (let i = 0; i < 2300; i++) {
@@ -69,98 +87,43 @@ function useGroundArtwork(kind: 'court' | 'field') {
 
 function RecreationGround() {
   const concrete = useJournalSurface('concrete', [3, 3], .28), turf = useJournalSurface('ground', [3, 3], .16);
-  const court = useGroundArtwork('court'), field = useGroundArtwork('field');
+  const court = useGroundArtwork('court'), field = useGroundArtwork('field'), rubber = useGroundArtwork('rubber');
   return <group userData={TERRAIN}>
     <RoundedBox args={[5.65, .075, 3.47]} radius={.022} smoothness={2} position={[0, .036, 0]} receiveShadow castShadow><meshStandardMaterial {...concrete} color='#a8a993' roughness={.95}/></RoundedBox>
     <mesh position={[-1.48, .077, -.28]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow><planeGeometry args={[2.39, 2.39]}/><meshStandardMaterial {...concrete} map={court} roughness={.95}/></mesh>
     <mesh position={[1.35, .078, -.28]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow><planeGeometry args={[2.56, 2.39]}/><meshStandardMaterial {...turf} map={field} roughness={1}/></mesh>
-    <mesh position={[-.55, .083, 1.33]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow><planeGeometry args={[4.2, .66]}/><meshStandardMaterial {...concrete} color='#343d34' roughness={1}/></mesh>
+    <mesh position={[-.55, .083, 1.33]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow><planeGeometry args={[4.2, .66]}/><meshStandardMaterial {...concrete} map={rubber} color='#d0d4c4' roughness={1}/></mesh>
     <mesh position={[-.09, .083, -.28]} rotation={[-Math.PI / 2, 0, 0]}><planeGeometry args={[.13, 2.4]}/><meshStandardMaterial color='#d1c5a4' roughness={1}/></mesh>
   </group>;
 }
 
-function RacketNet({time}: Time) {
-  const adjustable = useRef<THREE.Group>(null);
-  const geometry = useMemo(() => netGeometry(2.14, .52, 37, 10), []);
-  useEffect(() => () => geometry.dispose(), [geometry]);
-  useFrame(() => {
-    if (!adjustable.current) return;
-    const cycle = time.current.t % 24;
-    // The same recreation court accommodates both racket sports; transitions
-    // happen during a quiet beat instead of replacing the entire scene.
-    const badminton = cycle < 10 ? 1 : cycle < 12 ? 1 - (cycle - 10) / 2 : cycle < 22 ? 0 : (cycle - 22) / 2;
-    adjustable.current.scale.y = THREE.MathUtils.lerp(.62, 1, THREE.MathUtils.smoothstep(badminton, 0, 1));
-  });
-  return <group userData={EQUIPMENT}>
-    <group position={[-1.48, .08, -.28]} ref={adjustable}>
-      {[-1.10, 1.10].map(x => <group key={x}>
-        <Pole from={[x, 0, 0]} to={[x, .73, 0]} radius={.018} color={INK}/>
-        <mesh position={[x, .013, 0]} castShadow><cylinderGeometry args={[.075, .09, .025, 20]}/><meshStandardMaterial color={STEEL} metalness={.65} roughness={.4}/></mesh>
+function PickleballNet() {
+  const net = useMemo(() => {
+    const points: number[] = [], columns = 48, rows = 11, width = 1.12;
+    const top = (x: number) => .43 - .024 * Math.max(0, 1 - (x / .56) ** 2);
+    const at = (u: number, v: number) => {const x = (u - .5) * width; return [x, .10 + (top(x) - .10) * v, .009 * Math.sin(u * Math.PI) * Math.sin(v * Math.PI)];};
+    const segment = (a: number[], b: number[]) => points.push(...a, ...b);
+    for (let col = 0; col <= columns; col++) for (let row = 0; row < rows; row++) segment(at(col / columns, row / rows), at(col / columns, (row + 1) / rows));
+    for (let row = 0; row <= rows; row++) for (let col = 0; col < columns; col++) segment(at(col / columns, row / rows), at((col + 1) / columns, row / rows));
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(points, 3)); return g;
+  }, []);
+  const tape = useMemo(() => {
+    const g = new THREE.PlaneGeometry(1.14, .020, 48, 1), p = g.attributes.position;
+    for (let i = 0; i < p.count; i++) {const x = p.getX(i); p.setY(i, p.getY(i) + .43 - .024 * Math.max(0, 1 - (x / .56) ** 2));}
+    g.computeVertexNormals(); return g;
+  }, []);
+  useEffect(() => () => {net.dispose(); tape.dispose();}, [net, tape]);
+  return <group userData={EQUIPMENT} name='fixed-pickleball-net'>
+    <group position={[-1.48, .08, -.28]}>
+      {[-.59, .59].map(x => <group key={x}>
+        <Pole from={[x, 0, 0]} to={[x, .46, 0]} radius={.013} color={INK} metalness={.16}/>
+        <mesh position={[x, .013, 0]} castShadow><cylinderGeometry args={[.065, .075, .025, 20]}/><meshStandardMaterial color='#59665a' metalness={.22} roughness={.72}/></mesh>
+        <mesh position={[x, .455, 0]}><sphereGeometry args={[.014, 12, 8]}/><meshStandardMaterial color={INK} roughness={.8}/></mesh>
       </group>)}
-      <lineSegments geometry={geometry} position={[0, .17, 0]}><lineBasicMaterial color='#26372c' transparent opacity={.62}/></lineSegments>
-      <mesh position={[0, .70, 0]}><boxGeometry args={[2.18, .028, .017]}/><meshStandardMaterial color={CREAM} roughness={1}/></mesh>
-      <Pole from={[-1.08, .17, 0]} to={[1.08, .17, 0]} radius={.004} color={CREAM} metalness={0}/>
+      <lineSegments geometry={net}><lineBasicMaterial color='#37473a' transparent opacity={.28}/></lineSegments>
+      <mesh geometry={tape}><meshStandardMaterial color='#dfdfcb' roughness={1} side={THREE.DoubleSide}/></mesh>
+      <Pole from={[-.56, .10, 0]} to={[.56, .10, 0]} radius={.002} color='#6b7560' metalness={0}/>
     </group>
-  </group>;
-}
-
-function Racket({time}: Time) {
-  const badminton = useRef<THREE.Group>(null), pickleball = useRef<THREE.Group>(null);
-  const strings = useMemo(() => {
-    const positions: number[] = [];
-    for (let i = -3; i <= 3; i++) {
-      const x = i * .025, half = Math.sqrt(Math.max(0, .0104 - x * x));
-      positions.push(x, .29 - half * 1.27, 0, x, .29 + half * 1.27, 0);
-      positions.push(-half, .29 + x * 1.27, 0, half, .29 + x * 1.27, 0);
-    }
-    const geometry = new THREE.BufferGeometry(); geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3)); return geometry;
-  }, []);
-  useEffect(() => () => strings.dispose(), [strings]);
-  useFrame(() => {
-    const useRacket = time.current.t % 24 < 12;
-    if (badminton.current) badminton.current.visible = useRacket;
-    if (pickleball.current) pickleball.current.visible = !useRacket;
-  });
-  return <>
-    <Pole from={[0, -.035, 0]} to={[0, .17, 0]} radius={.009} color='#38443b' metalness={.15}/>
-    <group ref={badminton}>
-      <mesh position={[0, .29, 0]} scale={[1, 1.27, 1]} castShadow><torusGeometry args={[.103, .009, 7, 32]}/><meshStandardMaterial color='#b6bda6' metalness={.65} roughness={.4}/></mesh>
-      <lineSegments geometry={strings}><lineBasicMaterial color='#e6e3d2' transparent opacity={.75}/></lineSegments>
-    </group>
-    <group ref={pickleball} visible={false}>
-      <RoundedBox args={[.18, .22, .025]} radius={.04} smoothness={2} position={[0, .255, 0]} castShadow><meshStandardMaterial color='#bba16a' roughness={.68}/></RoundedBox>
-      <mesh position={[0, .26, .014]}><planeGeometry args={[.13, .13]}/><meshStandardMaterial color={INK} roughness={.9}/></mesh>
-    </group>
-  </>;
-}
-
-function RacketFlight({time}: Time) {
-  const shuttle = useRef<THREE.Group>(null), ball = useRef<THREE.Mesh>(null);
-  const feathers = useMemo(() => {
-    const points: number[] = [];
-    for (let i = 0; i < 10; i++) { const a = i / 10 * Math.PI * 2; points.push(Math.cos(a) * .009, -.025, Math.sin(a) * .009, Math.cos(a) * .045, .065, Math.sin(a) * .045); }
-    const geometry = new THREE.BufferGeometry(); geometry.setAttribute('position', new THREE.Float32BufferAttribute(points, 3)); return geometry;
-  }, []);
-  useEffect(() => () => feathers.dispose(), [feathers]);
-  useFrame(() => {
-    const flight = Math.cos(time.current.t * 1.7), isBadminton = time.current.t % 24 < 12;
-    const z = -.31 + flight * .66;
-    if (shuttle.current) {
-      shuttle.current.visible = isBadminton; shuttle.current.position.set(-1.63, 1.23 + (1 - flight * flight) * .25, z);
-      shuttle.current.rotation.x = flight > 0 ? -.8 : .8;
-    }
-    if (ball.current) {
-      ball.current.visible = !isBadminton; ball.current.position.set(-1.63, .74 + (1 - flight * flight) * .17, z);
-      ball.current.rotation.set(time.current.t * 4, 0, time.current.t * 3);
-    }
-  });
-  return <group userData={{...PEOPLE, revealOrder: 3}}>
-    <group ref={shuttle}>
-      <mesh position={[0, -.026, 0]}><sphereGeometry args={[.018, 12, 8]}/><meshStandardMaterial color={CREAM} roughness={.95}/></mesh>
-      <lineSegments geometry={feathers}><lineBasicMaterial color='#f1efdb'/></lineSegments>
-      <mesh position={[0, .02, 0]}><coneGeometry args={[.044, .09, 10, 1, true]}/><meshStandardMaterial color='#f1efdb' transparent opacity={.48} side={THREE.DoubleSide}/></mesh>
-    </group>
-    <mesh ref={ball} visible={false}><sphereGeometry args={[.037, 16, 12]}/><meshStandardMaterial color='#d2d590' roughness={.75}/></mesh>
   </group>;
 }
 
@@ -169,10 +132,71 @@ function CourtBench() {
     <RoundedBox args={[.48, .045, .25]} radius={.015} smoothness={2} position={[0, .18, 0]} castShadow><meshStandardMaterial color='#a9936c' roughness={.87}/></RoundedBox>
     {[-.17, .17].map(x => <Pole key={x} from={[x, .01, 0]} to={[x, .16, 0]} radius={.018} color={INK}/>)}
     {[-.09, .09].map((x, i) => <group key={x} position={[x, 0, .17]} rotation={[-.30, 0, i ? -.08 : .08]}>
-      <Pole from={[0, .015, 0]} to={[0, .14, 0]} radius={.008} color={INK} metalness={0}/>
-      <RoundedBox args={[.125, .17, .018]} radius={.027} smoothness={2} position={[0, .22, 0]} castShadow><meshStandardMaterial color={i ? '#c4b17f' : '#344f40'} roughness={.8}/></RoundedBox>
+      <PickleballPaddle position={[0, .024, 0]} scale={[.70, .77, .72]} faceColor={i ? '#a79570' : '#344f40'}/>
     </group>)}
   </group>;
+}
+
+function PickleballRallyBall({time}: Time) {
+  const ball = useRef<THREE.Group>(null);
+  useFrame(() => {
+    if (!ball.current) return;
+    const sample = samplePickleballRally(time.current.t);
+    ball.current.position.set(...sample.ball.position);
+    ball.current.rotation.set(time.current.t * 4, time.current.t * 2.3, 0);
+  });
+  return <group userData={{...PEOPLE, revealOrder: 3}}>
+    <group ref={ball}><PickleballBall radius={PICKLEBALL_BALL_RADIUS}/></group>
+  </group>;
+}
+
+function TableTennisPaddle() {
+  return <group>
+    <RoundedBox args={[.030, .088, .021]} radius={.008} smoothness={2} position={[0, .024, 0]} castShadow><meshStandardMaterial color='#a98e65' roughness={.85}/></RoundedBox>
+    <mesh position={[0, .115, 0]} rotation={[Math.PI / 2, 0, 0]} scale={[1, 1, 1.08]} castShadow><cylinderGeometry args={[.064, .064, .012, 28]}/><meshStandardMaterial color='#c5ab7a' roughness={.83}/></mesh>
+    <mesh position={[0, .115, .007]} rotation={[Math.PI / 2, 0, 0]} scale={[1, 1, 1.08]} castShadow><cylinderGeometry args={[.061, .061, .003, 28]}/><meshStandardMaterial color='#273c32' roughness={.96}/></mesh>
+    <mesh position={[0, .115, -.007]} rotation={[Math.PI / 2, 0, 0]} scale={[1, 1, 1.08]}><cylinderGeometry args={[.061, .061, .003, 28]}/><meshStandardMaterial color='#915948' roughness={.96}/></mesh>
+  </group>;
+}
+
+function TableTennis({time}: Time) {
+  const net = useMemo(() => {
+    const points: number[] = [], width = .60, height = .072;
+    const at = (u: number, v: number) => [(u - .5) * width, .36 + v * height - .002 * Math.sin(u * Math.PI) * v, .002 * Math.sin(u * Math.PI) * Math.sin(v * Math.PI)];
+    for (let i = 0; i <= 32; i++) points.push(...at(i / 32, 0), ...at(i / 32, 1));
+    for (let row = 0; row <= 5; row++) for (let i = 0; i < 32; i++) points.push(...at(i / 32, row / 5), ...at((i + 1) / 32, row / 5));
+    const geometry = new THREE.BufferGeometry(); geometry.setAttribute('position', new THREE.Float32BufferAttribute(points, 3)); return geometry;
+  }, []);
+  useEffect(() => () => net.dispose(), [net]);
+  return <>
+    <group userData={EQUIPMENT} name='table-tennis-table' position={[-2.43, .08, -.43]}>
+      {[-1, 1].map(side => <RoundedBox key={side} args={[.52, .026, .472]} radius={.005} smoothness={2} position={[0, .347, side * .239]} receiveShadow castShadow><meshStandardMaterial color='#355c4a' roughness={.82}/></RoundedBox>)}
+      {[-.25, .25].map(x => <mesh key={x} position={[x, .361, 0]} rotation={[-Math.PI / 2, 0, 0]}><planeGeometry args={[.007, .935]}/><meshStandardMaterial color={CREAM} roughness={.98}/></mesh>)}
+      {[-.465, .465].map(z => <mesh key={z} position={[0, .361, z]} rotation={[-Math.PI / 2, 0, 0]}><planeGeometry args={[.505, .007]}/><meshStandardMaterial color={CREAM} roughness={.98}/></mesh>)}
+      <mesh position={[0, .361, 0]} rotation={[-Math.PI / 2, 0, 0]}><planeGeometry args={[.003, .935]}/><meshStandardMaterial color={CREAM} roughness={.98}/></mesh>
+      {[-.18, .18].map(x => <group key={x}>
+        {[-.32, .32].map(z => <group key={z}>
+          <Pole from={[x, .04, z]} to={[x, .332, z]} radius={.013} color={INK} metalness={.45}/>
+          <mesh position={[x, .025, z]} rotation={[0, 0, Math.PI / 2]} castShadow><cylinderGeometry args={[.024, .024, .019, 12]}/><meshStandardMaterial color='#30372f' roughness={.98}/></mesh>
+        </group>)}
+        <Pole from={[x, .10, -.32]} to={[x, .30, .22]} radius={.007} color='#66756a' metalness={.55}/>
+        <Pole from={[x, .30, -.22]} to={[x, .10, .32]} radius={.007} color='#66756a' metalness={.55}/>
+      </group>)}
+      <Pole from={[-.18, .31, -.32]} to={[.18, .31, -.32]} radius={.009} color={INK}/>
+      <Pole from={[-.18, .31, .32]} to={[.18, .31, .32]} radius={.009} color={INK}/>
+      {[-.30, .30].map(x => <group key={x}>
+        <Pole from={[x, .345, 0]} to={[x, .434, 0]} radius={.005} color='#3b4b3f' metalness={.25}/>
+        <RoundedBox args={[.047, .010, .038]} radius={.003} smoothness={2} position={[Math.sign(x) * .277, .34, 0]}><meshStandardMaterial color='#687469' roughness={.58} metalness={.5}/></RoundedBox>
+      </group>)}
+      <lineSegments geometry={net}><lineBasicMaterial color='#364639' transparent opacity={.52}/></lineSegments>
+      <Pole from={[-.30, .432, 0]} to={[.30, .432, 0]} radius={.0025} color={CREAM} metalness={0}/>
+      <mesh position={[.07, .373, .25]} castShadow><sphereGeometry args={[.012, 16, 12]}/><meshStandardMaterial color='#f0ead6' roughness={.75}/></mesh>
+    </group>
+    <group userData={PEOPLE} name='table-tennis-players'>
+      <Athlete time={time} activity='racket' racketPose='ready' position={[-2.43, .08, -1.22]} scale={.83} shirt='#8a9d84' trousers='#314d3e' equipment={<TableTennisPaddle/>}/>
+      <Athlete time={time} activity='racket' racketPose='ready' position={[-2.43, .08, .36]} angle={Math.PI} scale={.83} shirt='#c1ac89' trousers='#34463c' equipment={<TableTennisPaddle/>}/>
+    </group>
+  </>;
 }
 
 function Goal() {
@@ -201,9 +225,9 @@ function Goal() {
       <Pole from={[x, 0, 0]} to={[x, 0, -.29]} radius={.01} color={STEEL}/>
     </group>)}
     <Pole from={[-.625, .61, 0]} to={[.625, .61, 0]} radius={.021} color={CREAM} metalness={.15}/>
-    <lineSegments geometry={net} position={[0, 0, -.29]}><lineBasicMaterial color='#e9e6ce' transparent opacity={.65}/></lineSegments>
-    <lineSegments geometry={roof}><lineBasicMaterial color='#e9e6ce' transparent opacity={.55}/></lineSegments>
-    {[-.625, .625].map(x => <lineSegments key={x} geometry={sideNet} position={[x, 0, 0]}><lineBasicMaterial color='#e9e6ce' transparent opacity={.55}/></lineSegments>)}
+    <lineSegments geometry={net} position={[0, 0, -.29]}><lineBasicMaterial color='#d6d8bf' transparent opacity={.48}/></lineSegments>
+    <lineSegments geometry={roof}><lineBasicMaterial color='#d6d8bf' transparent opacity={.40}/></lineSegments>
+    {[-.625, .625].map(x => <lineSegments key={x} geometry={sideNet} position={[x, 0, 0]}><lineBasicMaterial color='#d6d8bf' transparent opacity={.40}/></lineSegments>)}
   </group>;
 }
 
@@ -238,8 +262,8 @@ function FieldBalls({time}: Time) {
   useFrame(() => {
     const cycle = (time.current.t * 1.35 / (Math.PI * 2)) % 1;
     const shot = THREE.MathUtils.clamp((cycle - .25) / .45, 0, 1);
-    if (football.current) { football.current.position.set(1.78, .147 + Math.sin(shot * Math.PI) * .22, .30 - shot * 1.42); football.current.rotation.x = -time.current.t * 3; }
-    if (cricket.current) { const pass = (time.current.t / 4.4) % 1; cricket.current.position.set(.62, .22 + Math.sin(pass * Math.PI) * .08, -.95 + pass * 1.25); }
+    if (football.current) { football.current.position.set(1.78, .147, .30 - shot * 1.42); football.current.rotation.x = -time.current.t * 3; }
+    if (cricket.current) { const pass = (time.current.t / 4.4) % 1; cricket.current.position.set(.62, .11, -.95 + pass * 1.25); }
   });
   return <group userData={{...PEOPLE, revealOrder: 3}}>
     <mesh ref={football} castShadow><sphereGeometry args={[.065, 24, 16]}/><meshStandardMaterial map={texture} roughness={.8}/></mesh>
@@ -273,10 +297,13 @@ function GymEquipment() {
 }
 
 export function SportsSpread({time}: Time) {
+  // Other activities stay between points while the first rally is reviewed.
+  const stillTime = useRef({t: 10 * Math.PI / 1.7});
   return <>
     <RecreationGround/>
-    <RacketNet time={time}/>
+    <PickleballNet/>
     <CourtBench/>
+    <TableTennis time={stillTime}/>
     <group userData={EQUIPMENT}>
       <Goal/>
       <CricketWicket position={[.62, .08, -.95]}/>
@@ -284,13 +311,13 @@ export function SportsSpread({time}: Time) {
     </group>
     <GymEquipment/>
     <group userData={PEOPLE}>
-      <Athlete time={time} activity='racket' position={[-1.42, .08, .52]} angle={Math.PI} scale={.83} shirt='#d8dfce' trousers='#345345' equipment={<Racket time={time}/>}/>
-      <Athlete time={time} activity='racket' position={[-1.84, .08, -1.04]} phase={Math.PI / 1.7} scale={.83} shirt='#ad9671' equipment={<Racket time={time}/>}/>
-      <Athlete time={time} activity='kick' position={[1.9, .08, .45]} angle={Math.PI} scale={.91} shirt='#e0ddc9' trousers='#4b6852'/>
-      <Athlete time={time} activity='bat' position={[.62, .08, .37]} angle={Math.PI} scale={.85} shirt='#eee8d6' trousers='#ddd6c1' equipment={<CricketBat/>}/>
-      <Athlete time={time} activity='lift' position={[.15, .085, 1.29]} scale={.94} shirt='#a88d67' trousers='#293d34' skin='#a97751'/>
+      <Athlete time={time} activity='racket' racketPose='pickleball-front' position={[-1.42, .08, .52]} angle={Math.PI} scale={.83} shirt='#d8dfce' trousers='#345345' equipment={<PickleballPaddle/>}/>
+      <Athlete time={time} activity='racket' racketPose='pickleball-back' position={[-1.84, .08, -1.04]} scale={.83} shirt='#ad9671' equipment={<PickleballPaddle/>}/>
+      <Athlete time={stillTime} activity='kick' position={[1.9, .08, .45]} angle={Math.PI} scale={.91} shirt='#e0ddc9' trousers='#4b6852'/>
+      <Athlete time={stillTime} activity='bat' position={[.62, .08, .37]} angle={Math.PI} scale={.85} shirt='#eee8d6' trousers='#ddd6c1' equipment={<CricketBat/>}/>
+      <Athlete time={stillTime} activity='lift' position={[.15, .085, 1.29]} scale={.94} shirt='#a88d67' trousers='#293d34' skin='#a97751'/>
     </group>
-    <RacketFlight time={time}/>
-    <FieldBalls time={time}/>
+    <PickleballRallyBall time={time}/>
+    <FieldBalls time={stillTime}/>
   </>;
 }

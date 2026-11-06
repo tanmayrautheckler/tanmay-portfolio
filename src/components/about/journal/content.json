@@ -102,11 +102,11 @@
         "texture": "sports",
         "kicker": "ON THE COURT / ON THE FIELD",
         "title": "Always\nmoving.",
-        "body": "I play badminton, pickleball, soccer and cricket. Different games, different rhythms, and time well spent away from a screen.",
-        "note": "Badminton · Pickleball · Soccer · Cricket",
+        "body": "I play pickleball, table tennis, soccer and cricket. Different games, different rhythms, and time well spent away from a screen.",
+        "note": "Pickleball · Table tennis · Soccer · Cricket",
         "topics": [
-          "Badminton",
           "Pickleball",
+          "Table tennis",
           "Soccer",
           "Cricket"
         ]
